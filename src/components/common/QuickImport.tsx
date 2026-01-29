@@ -55,8 +55,8 @@ export default function QuickImport() {
 
       {/* 弹窗 */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl md:rounded-3xl w-full max-w-md shadow-2xl animate-fade-in-scale">
             {/* 头部 */}
             <div className="flex items-center justify-between p-5 border-b border-cream-200">
               <h3 className="font-display text-xl text-warm-800">快速导入</h3>

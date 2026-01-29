@@ -164,6 +164,46 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
+/* 日期选择器样式优化 */
+input[type="date"] {
+  position: relative;
+  font-family: var(--font-body);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  cursor: pointer;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  opacity: 0.6;
+  transition: opacity 200ms ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* 日期选择器弹出框样式（Chrome/Edge） */
+::-webkit-datetime-edit {
+  font-family: var(--font-body);
+  padding: 0;
+}
+
+::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+::-webkit-datetime-edit-text,
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-year-field {
+  color: #4A3F3A;
+}
+
 /* 表格行悬停 */
 tbody tr {
   transition: background-color 150ms ease;
@@ -173,6 +213,76 @@ tbody tr {
 tbody tr:hover {
   background-color: #FFFCF8;
 }
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 300ms ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 400ms ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 300ms ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 400ms ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* 卡片进入动画 - 依次延迟 */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
 
 /* 尊重用户的动画偏好 (UI/UX Pro Max 推荐) */
 @media (prefers-reduced-motion: reduce) {
@@ -184,7 +294,29 @@ tbody tr:hover {
     transition-duration: 0.01ms !important;
   }
   
-  .float-animation {
+  .float-animation,
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-fade-in-scale,
+  .animate-slide-in-right,
+  .animate-pulse-soft {
     animation: none;
+  }
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .card-soft {
+    @apply rounded-2xl;
+  }
+  
+  /* 隐藏侧边栏，使用底部导航 */
+  aside {
+    display: none;
+  }
+  
+  main {
+    padding: 1rem;
+    padding-bottom: 5rem;
   }
 }

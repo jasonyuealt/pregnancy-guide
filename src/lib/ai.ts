@@ -1,74 +1,121 @@
-import { WeekItem, ItemType } from '@/types';
-
-const API_URL = 'https://cerebras-proxy.brain.loocaa.com:1443/v1/chat/completions';
-const API_KEY = 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK';
-const MODEL = 'qwen-3-235b-a22b-instruct-2507';
+/**
+ * AI 服务配置
+ */
+const AI_CONFIG = {
+  baseUrl: 'https://cerebras-proxy.brain.loocaa.com:1443/v1',
+  apiKey: 'DlJYSkMVj1x4zoe8jZnjvxfHG6z5yGxK',
+  model: 'qwen-3-235b-a22b-instruct-2507',
+};
 
 /**
- * AI 聊天接口
+ * AI 消息接口
  */
-async function chat(messages: { role: string; content: string }[]): Promise<string> {
-  const response = await fetch(API_URL, {
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * AI 响应接口
+ */
+interface ChatResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: string;
+      content: string;
+    };
+    finish_reason: string;
+  }>;
+}
+
+/**
+ * 调用 AI 接口
+ */
+export async function chat(messages: ChatMessage[]): Promise<string> {
+  const response = await fetch(`${AI_CONFIG.baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${AI_CONFIG.apiKey}`,
     },
-    body: JSON.stringify({ model: MODEL, messages }),
+    body: JSON.stringify({
+      model: AI_CONFIG.model,
+      messages,
+    }),
   });
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  if (!response.ok) {
+    throw new Error(`AI 请求失败: ${response.status}`);
+  }
+
+  const data: ChatResponse = await response.json();
+  return data.choices[0]?.message?.content || '';
 }
 
 /**
- * AI 生成的周内容结构
+ * 孕周内容结构
  */
-export interface AIWeekContent {
-  todos: string[];      // 待办事项
-  shopping: { item: string; reason: string }[];  // 购物清单
-  tips: string[];       // 注意事项
-  forWife: string[];    // 为老婆做的事
+export interface WeekContentData {
+  fetalSize: string;
+  fetalWeight: string;
+  fetalLength: string;
+  fetalDevelopment: string;
+  keyPoints: string[];
+  checkups: { name: string; important: boolean }[];
+  shopping: { name: string; reason: string }[];
+  nutrition: string[];
+  warnings: string[];
 }
 
 /**
- * 生成指定周的内容
+ * 生成孕周内容
  */
-export async function generateWeekContent(week: number): Promise<AIWeekContent> {
-  const stage = week < 13 ? '孕早期' : week < 28 ? '孕中期' : '孕晚期';
-  
-  const systemPrompt = `你是一个专业的孕期顾问，帮助准爸爸了解每周该做什么。
-请根据孕${week}周（${stage}）的实际情况，生成以下内容。
+export async function generateWeekContent(week: number): Promise<WeekContentData> {
+  const systemPrompt = `你是一个专业的孕期顾问。请根据用户提供的孕周数，生成该周的完整指南。
 
-要求：
-1. 内容必须准确、实用、可执行
-2. 语言简洁，每条不超过20字
-3. 针对准爸爸的角度，告诉他该做什么
-
-请严格返回以下 JSON 格式：
+请严格使用以下 JSON 格式返回（不要添加任何其他文字）：
 {
-  "todos": ["待办1", "待办2", "待办3"],
-  "shopping": [
-    { "item": "物品名", "reason": "购买理由" }
+  "fetalSize": "宝宝大小比喻（如：木瓜、柚子等）",
+  "fetalWeight": "体重数字（克，纯数字）",
+  "fetalLength": "身长数字（厘米，纯数字）",
+  "fetalDevelopment": "胎儿发育描述（80-120字，描述本周宝宝的发育重点）",
+  "keyPoints": ["本周注意事项1", "注意事项2", "注意事项3", "注意事项4"],
+  "checkups": [
+    { "name": "产检项目名称", "important": true或false }
   ],
-  "tips": ["注意事项1", "注意事项2"],
-  "forWife": ["为老婆做的事1", "为老婆做的事2"]
+  "shopping": [
+    { "name": "建议购买物品", "reason": "购买理由" }
+  ],
+  "nutrition": ["饮食建议1", "饮食建议2", "饮食建议3"],
+  "warnings": ["需要警惕的症状1", "症状2"]
 }
 
-具体要求：
-- todos: 3-5 条本周必做的事（产检、准备、学习等）
-- shopping: 2-4 个本周建议购买的物品
-- tips: 2-4 条本周需要注意的事项
-- forWife: 2-3 条可以为老婆做的贴心小事`;
+注意：
+1. 内容必须准确、专业，基于医学常识
+2. keyPoints 提供 4 条最重要的本周注意事项
+3. checkups 只列出本周需要做的产检，没有就返回空数组
+4. shopping 推荐 2-3 个本周适合购买的物品
+5. nutrition 提供 3 条饮食建议
+6. warnings 列出需要警惕就医的症状`;
+
+  const userPrompt = `请生成孕期第 ${week} 周的详细指南。`;
 
   const response = await chat([
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: `请生成孕${week}周的内容` },
+    { role: 'user', content: userPrompt },
   ]);
 
+  // 解析 JSON 响应
   try {
+    // 尝试提取 JSON 部分（处理可能的 markdown 代码块）
     let jsonStr = response;
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) ||
+    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || 
                       response.match(/```\s*([\s\S]*?)\s*```/) ||
                       response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -76,128 +123,117 @@ export async function generateWeekContent(week: number): Promise<AIWeekContent> 
     }
     return JSON.parse(jsonStr);
   } catch {
-    // 返回默认内容
+    // 如果解析失败，返回默认数据
+    console.error('AI 响应解析失败:', response);
     return {
-      todos: ['完成本周产检', '记录胎动情况', '准备待产物品'],
-      shopping: [{ item: '叶酸', reason: '补充营养' }],
-      tips: ['保持良好作息', '适当运动'],
-      forWife: ['陪伴散步', '准备营养餐'],
+      fetalSize: '未知',
+      fetalWeight: '0',
+      fetalLength: '0',
+      fetalDevelopment: 'AI 生成内容解析失败，请重试。',
+      keyPoints: ['请重新生成内容'],
+      checkups: [],
+      shopping: [],
+      nutrition: [],
+      warnings: [],
     };
   }
 }
 
 /**
- * 将 AI 内容转换为 WeekItem 数组
+ * 小红书解析结果
  */
-export function convertToWeekItems(content: AIWeekContent, week: number): Omit<WeekItem, 'id' | 'createdAt'>[] {
-  const items: Omit<WeekItem, 'id' | 'createdAt'>[] = [];
-
-  // 待办
-  content.todos.forEach((todo) => {
-    items.push({
-      type: 'todo',
-      content: todo,
-      source: 'ai',
-      completed: false,
-      week,
-    });
-  });
-
-  // 购物
-  content.shopping.forEach((s) => {
-    items.push({
-      type: 'shopping',
-      content: s.item,
-      note: s.reason,
-      source: 'ai',
-      completed: false,
-      week,
-    });
-  });
-
-  // 注意
-  content.tips.forEach((tip) => {
-    items.push({
-      type: 'tip',
-      content: tip,
-      source: 'ai',
-      completed: false,
-      week,
-    });
-  });
-
-  // 为老婆
-  content.forWife.forEach((item) => {
-    items.push({
-      type: 'forWife',
-      content: item,
-      source: 'ai',
-      completed: false,
-      week,
-    });
-  });
-
-  return items;
+export interface XiaohongshuParseResult {
+  title: string;
+  stage: 'early' | 'middle' | 'late' | 'hospital' | null;
+  targetWeek: number | null;
+  contentType: 'product' | 'tip' | 'nutrition' | 'experience';
+  summary: string;
+  products: { name: string; reason: string }[];
+  tips: string[];
+  suggestedCategory: string;
 }
 
 /**
- * 解析小红书内容
+ * 解析小红书链接/内容
+ * 由于无法直接访问 URL，使用 AI 根据链接信息推断内容
  */
-export interface ParsedXHSContent {
-  summary: string;
-  suggestedWeek: number | null;
-  items: {
-    type: ItemType;
-    content: string;
-    note?: string;
-  }[];
+export async function parseXiaohongshuUrl(urlOrContent: string): Promise<XiaohongshuParseResult> {
+  const systemPrompt = `你是一个孕期内容分析助手。用户会提供小红书文章的链接或内容描述。
+请分析这个内容，判断它属于孕期的哪个阶段、哪种类型，并提取关键信息。
+
+请严格使用以下 JSON 格式返回（不要添加任何其他文字）：
+{
+  "title": "推测的文章标题（简洁，10字以内）",
+  "stage": "early/middle/late/hospital 或 null（无法确定时）",
+  "targetWeek": 具体孕周数（1-40）或 null,
+  "contentType": "product/tip/nutrition/experience 之一",
+  "summary": "内容摘要（30字以内）",
+  "products": [
+    { "name": "提到的产品名", "reason": "推荐理由" }
+  ],
+  "tips": ["提取的注意事项或经验"],
+  "suggestedCategory": "建议归类到：待产包/孕期营养/产检准备/生活护理/运动建议 等"
 }
 
-export async function parseXiaohongshuContent(text: string, currentWeek: number): Promise<ParsedXHSContent> {
-  const systemPrompt = `你是一个孕期内容分析助手。用户会粘贴从小红书复制的孕期相关内容。
-请分析内容，提取有用的信息。
+注意：
+1. 如果是小红书链接，根据链接中的关键词推测内容
+2. 如果是文章内容，直接提取信息
+3. products 数组可以为空
+4. tips 至少提供 1 条`;
 
-当前用户处于孕${currentWeek}周。
+  const userPrompt = `请分析以下小红书内容并提取孕期相关信息：
 
-请返回以下 JSON 格式：
+${urlOrContent}`;
+
+  const response = await chat([
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ]);
+
+  try {
+    let jsonStr = response;
+    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || 
+                      response.match(/```\s*([\s\S]*?)\s*```/) ||
+                      response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1] || jsonMatch[0];
+    }
+    return JSON.parse(jsonStr);
+  } catch {
+    console.error('小红书解析失败:', response);
+    return {
+      title: '解析失败',
+      stage: null,
+      targetWeek: null,
+      contentType: 'tip',
+      summary: '无法解析该内容，请重试',
+      products: [],
+      tips: [],
+      suggestedCategory: '其他',
+    };
+  }
+}
+
+/**
+ * 生成 AI 购物推荐
+ */
+export async function generateShoppingRecommendation(
+  week: number,
+  stage: string
+): Promise<string> {
+  const systemPrompt = `你是一个孕期购物顾问。请根据当前孕周和阶段，推荐需要购买的物品。
+请使用 JSON 格式返回，包含以下字段：
 {
-  "summary": "内容摘要（20字以内）",
-  "suggestedWeek": 建议归类到哪一周（数字，如果无法判断则为 null），
   "items": [
-    { "type": "todo/shopping/tip/forWife", "content": "提取的内容", "note": "备注（可选）" }
+    { "name": "物品名称", "reason": "推荐理由", "priority": "high/medium/low" }
   ]
 }
+请推荐 3-5 个最重要的物品。`;
 
-type 说明：
-- todo: 需要做的事情
-- shopping: 需要买的东西
-- tip: 需要注意的事项
-- forWife: 为老婆做的事
+  const userPrompt = `当前孕期第 ${week} 周，处于${stage}，请推荐需要购买的物品。`;
 
-要求：
-1. 只提取有价值的、可执行的内容
-2. 每条内容简洁，不超过20字
-3. 如果内容和孕期无关，返回空的 items 数组`;
-
-  const response = await chat([
+  return chat([
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: `请分析：\n\n${text}` },
+    { role: 'user', content: userPrompt },
   ]);
-
-  try {
-    let jsonStr = response;
-    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) ||
-                      response.match(/```\s*([\s\S]*?)\s*```/) ||
-                      response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1] || jsonMatch[0];
-    }
-    return JSON.parse(jsonStr);
-  } catch {
-    return {
-      summary: '解析失败',
-      suggestedWeek: null,
-      items: [],
-    };
-  }
 }

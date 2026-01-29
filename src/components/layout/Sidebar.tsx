@@ -2,31 +2,45 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Baby, Home, Settings } from 'lucide-react';
+import {
+  Home,
+  Calendar,
+  ShoppingBag,
+  FileInput,
+  Settings,
+  Baby,
+} from 'lucide-react';
 
 /**
- * 侧边栏导航 - 精简版
+ * 导航项配置 - 精简版
  */
 const navItems = [
   { href: '/', label: '首页', icon: Home },
-  { href: '/settings', label: '设置', icon: Settings },
+  { href: '/timeline', label: '孕期时间轴', icon: Calendar },
+  { href: '/shopping', label: '购物清单', icon: ShoppingBag },
+  { href: '/import', label: '导入管理', icon: FileInput },
 ];
 
+/**
+ * 侧边栏组件 - 简洁版
+ */
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col w-56 bg-white border-r border-cream-200 p-4">
+    <aside className="hidden md:flex w-56 bg-white border-r border-coral-100 flex-shrink-0 flex-col h-screen sticky top-0">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 px-3 py-4 mb-4">
-        <div className="w-10 h-10 rounded-xl gradient-coral flex items-center justify-center shadow-md">
-          <Baby className="text-white" size={22} />
-        </div>
-        <span className="font-display text-xl text-warm-800">孕期指南</span>
-      </Link>
+      <div className="p-5 border-b border-coral-50">
+        <Link href="/" className="flex items-center gap-3 cursor-pointer">
+          <div className="w-10 h-10 rounded-xl gradient-coral flex items-center justify-center shadow">
+            <Baby className="text-white" size={22} />
+          </div>
+          <span className="font-display text-lg text-warm-800">孕期指南</span>
+        </Link>
+      </div>
 
       {/* 导航 */}
-      <nav className="flex-1">
+      <nav className="flex-1 py-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -35,22 +49,26 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all duration-200 ${
-                isActive
-                  ? 'bg-coral-50 text-coral-500 font-medium'
-                  : 'text-warm-600 hover:bg-cream-100'
-              }`}
+              className={`sidebar-item ${isActive ? 'active text-coral-500' : 'text-warm-600 hover:text-coral-500'}`}
             >
-              <Icon size={20} />
-              <span>{item.label}</span>
+              <Icon size={18} />
+              <span className={isActive ? 'font-semibold' : 'font-medium'}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* 底部信息 */}
-      <div className="px-4 py-3 text-xs text-warm-400">
-        温馨陪伴每一天
+      {/* 底部设置 */}
+      <div className="p-3 border-t border-coral-50">
+        <Link
+          href="/settings"
+          className={`sidebar-item ${pathname === '/settings' ? 'active text-coral-500' : 'text-warm-500 hover:text-coral-500'}`}
+        >
+          <Settings size={18} />
+          <span className="font-medium">设置</span>
+        </Link>
       </div>
     </aside>
   );

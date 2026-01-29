@@ -49,6 +49,7 @@ interface AppActions {
   // 导入内容相关
   addImportedItem: (item: ImportedItem) => void;
   markAsIntegrated: (id: string) => void;
+  removeImportedItem: (id: string) => void;
   
   // 工具方法
   setLoading: (loading: boolean) => void;
@@ -169,6 +170,12 @@ export const useAppStore = create<AppState & AppActions>()(
         }));
       },
 
+      removeImportedItem: (id) => {
+        set((state) => ({
+          importedItems: state.importedItems.filter((item) => item.id !== id),
+        }));
+      },
+
       // 工具方法
       setLoading: (loading) => {
         set({ isLoading: loading });
@@ -176,8 +183,8 @@ export const useAppStore = create<AppState & AppActions>()(
 
       /**
        * 获取当前孕周信息（中国标准：从0开始计数）
-       * 末次月经第1天 = 孕0周0天
-       * 显示格式：X周+Y 或 X+Y
+       * 优先使用末次月经(LMP)计算，更准确
+       * 显示格式：X+Y（如 19+1 表示孕19周+1天）
        */
       getCurrentWeekInfo: () => {
         const { settings } = get();
@@ -187,35 +194,39 @@ export const useAppStore = create<AppState & AppActions>()(
         let totalDays = 1;
         let daysUntilDue = 280;
         
-        if (settings.dueDate) {
-          // 使用本地日期字符串解析，避免时区问题
+        const now = new Date();
+        const nowYear = now.getFullYear();
+        const nowMonth = now.getMonth() + 1;
+        const nowDay = now.getDate();
+        const nowDateUTC = Date.UTC(nowYear, nowMonth - 1, nowDay);
+        
+        // 优先使用末次月经日期计算（更准确）
+        if (settings.lmpDate) {
+          const [lmpYear, lmpMonth, lmpDay] = settings.lmpDate.split('-').map(Number);
+          const lmpDateUTC = Date.UTC(lmpYear, lmpMonth - 1, lmpDay);
+          
+          // 从末次月经到今天的天数（包括末次月经当天）
+          totalDays = Math.floor((nowDateUTC - lmpDateUTC) / (1000 * 60 * 60 * 24)) + 1;
+          daysUntilDue = Math.max(0, 280 - totalDays);
+        } else if (settings.dueDate) {
+          // 没有 LMP 时，用预产期反推
           const [dueYear, dueMonth, dueDay] = settings.dueDate.split('-').map(Number);
-          const now = new Date();
-          const nowYear = now.getFullYear();
-          const nowMonth = now.getMonth() + 1;
-          const nowDay = now.getDate();
-          
-          // 计算从今天到预产期的天数（使用 UTC 避免夏令时问题）
           const dueDateUTC = Date.UTC(dueYear, dueMonth - 1, dueDay);
-          const nowDateUTC = Date.UTC(nowYear, nowMonth - 1, nowDay);
-          const diffMs = dueDateUTC - nowDateUTC;
-          daysUntilDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-          
-          // 孕期总天数 = 280 - 距预产期天数（末次月经第1天算第1天）
+          daysUntilDue = Math.max(0, Math.floor((dueDateUTC - nowDateUTC) / (1000 * 60 * 60 * 24)));
           totalDays = 280 - daysUntilDue;
-          
-          // 中国标准孕周计算：从0开始
-          // 第1天 = 孕0周0天，第7天 = 孕0周6天，第8天 = 孕1周0天
-          if (totalDays >= 1) {
-            week = Math.floor((totalDays - 1) / 7);  // 孕X周（从0开始）
-            day = (totalDays - 1) % 7;               // 第Y天（从0开始）
-          }
-          
-          if (week < 0) week = 0;
-          if (week > 40) week = 40;
         }
         
-        // 获取阶段名称（基于周数）
+        // 中国标准孕周计算
+        // 末次月经第1天 = 孕0周0天，第7天 = 孕0周6天，第8天 = 孕1周0天
+        if (totalDays >= 1) {
+          week = Math.floor((totalDays - 1) / 7);
+          day = (totalDays - 1) % 7;
+        }
+        
+        if (week < 0) week = 0;
+        if (week > 40) week = 40;
+        
+        // 获取阶段名称
         let stage = '孕早期';
         if (week >= 28) stage = '孕晚期';
         else if (week >= 13) stage = '孕中期';

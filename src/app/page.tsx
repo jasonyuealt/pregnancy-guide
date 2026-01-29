@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ChevronRight,
   ShoppingBag,
-  Bookmark,
   AlertCircle,
   Settings,
   Sparkles,
@@ -23,7 +22,7 @@ import Link from 'next/link';
  * 首页 - 充实内容 + 紧凑布局
  */
 export default function HomePage() {
-  const { settings, todos, shoppingList, importedItems, toggleTodo, getCurrentWeekInfo } = useAppStore();
+  const { settings, todos, shoppingList, toggleTodo, getCurrentWeekInfo } = useAppStore();
 
   const { week, day, totalDays, stage, daysUntilDue } = getCurrentWeekInfo();
   const progress = Math.round((totalDays / 280) * 100);
@@ -211,49 +210,22 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 底部：小红书导入 + AI 入口 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-        {/* 最近导入 */}
-        <div className="card-soft p-4 border border-cream-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Bookmark className="text-red-400" size={16} />
-              <span className="font-semibold text-warm-800">小红书导入</span>
-            </div>
-            <Link href="/import" className="text-xs text-warm-500 hover:text-warm-600 cursor-pointer">
-              管理
-            </Link>
+      {/* 底部：AI 入口 */}
+      <Link
+        href="/timeline"
+        className="block mt-5 card-soft p-5 border border-lavender-100 bg-gradient-to-r from-lavender-50 to-coral-50 hover:shadow-lg transition-all duration-200 cursor-pointer"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center shadow">
+            <Sparkles className="text-lavender-400" size={28} />
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {importedItems.length > 0 ? (
-              importedItems.slice(0, 3).map((item) => (
-                <span key={item.id} className="text-xs bg-red-50 text-red-500 px-3 py-1.5 rounded-lg">
-                  {item.sourceTitle.length > 12 ? `${item.sourceTitle.slice(0, 12)}...` : item.sourceTitle}
-                </span>
-              ))
-            ) : (
-              <span className="text-sm text-warm-500">暂无导入内容</span>
-            )}
+          <div className="flex-1">
+            <p className="font-semibold text-warm-800 text-lg">AI 生成本周完整内容</p>
+            <p className="text-sm text-warm-500">胎儿发育、注意事项、产检提醒、购物建议</p>
           </div>
+          <ChevronRight className="text-warm-400" size={24} />
         </div>
-
-        {/* AI 生成入口 */}
-        <Link
-          href="/timeline"
-          className="card-soft p-4 border border-lavender-100 bg-gradient-to-r from-lavender-50 to-coral-50 hover:shadow-lg transition-all duration-200 cursor-pointer"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow">
-              <Sparkles className="text-lavender-400" size={24} />
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-warm-800">AI 生成本周完整内容</p>
-              <p className="text-sm text-warm-500">胎儿发育、注意事项、产检、购物建议</p>
-            </div>
-            <ChevronRight className="text-warm-400" size={20} />
-          </div>
-        </Link>
-      </div>
+      </Link>
     </div>
   );
 }

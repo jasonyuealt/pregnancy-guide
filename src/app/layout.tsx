@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
-import QuickImport from "@/components/common/QuickImport";
 
 export const metadata: Metadata = {
   title: "孕期指南 - 温馨陪伴每一天",
@@ -44,9 +43,6 @@ export default function RootLayout({
         
         {/* 移动端底部导航 */}
         <MobileNav />
-        
-        {/* 全局悬浮：快速导入小红书 */}
-        <QuickImport />
       </body>
     </html>
   );

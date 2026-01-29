@@ -43,23 +43,32 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  // 预览孕周（中国标准：从0开始）
+  // 预览孕周（优先用 LMP，与 store 逻辑一致）
   const getPreviewWeekInfo = () => {
-    if (!dueDate) return null;
+    if (!dueDate && !lmpDate) return null;
     
-    const [dueYear, dueMonth, dueDay] = dueDate.split('-').map(Number);
     const now = new Date();
     const nowYear = now.getFullYear();
     const nowMonth = now.getMonth() + 1;
     const nowDay = now.getDate();
-    
-    const dueDateUTC = Date.UTC(dueYear, dueMonth - 1, dueDay);
     const nowDateUTC = Date.UTC(nowYear, nowMonth - 1, nowDay);
-    const daysUntilDue = Math.max(0, Math.floor((dueDateUTC - nowDateUTC) / (1000 * 60 * 60 * 24)));
     
-    const totalDays = 280 - daysUntilDue;
+    let totalDays = 1;
+    let daysUntilDue = 280;
     
-    // 中国标准：孕X周+Y（从0开始）
+    // 优先使用末次月经计算
+    if (lmpDate) {
+      const [lmpYear, lmpMonth, lmpDay] = lmpDate.split('-').map(Number);
+      const lmpDateUTC = Date.UTC(lmpYear, lmpMonth - 1, lmpDay);
+      totalDays = Math.floor((nowDateUTC - lmpDateUTC) / (1000 * 60 * 60 * 24)) + 1;
+      daysUntilDue = Math.max(0, 280 - totalDays);
+    } else if (dueDate) {
+      const [dueYear, dueMonth, dueDay] = dueDate.split('-').map(Number);
+      const dueDateUTC = Date.UTC(dueYear, dueMonth - 1, dueDay);
+      daysUntilDue = Math.max(0, Math.floor((dueDateUTC - nowDateUTC) / (1000 * 60 * 60 * 24)));
+      totalDays = 280 - daysUntilDue;
+    }
+    
     let week = 0;
     let day = 0;
     if (totalDays >= 1) {
@@ -70,7 +79,7 @@ export default function SettingsPage() {
     if (week > 40) week = 40;
     
     const stage = week < 13 ? '孕早期' : week < 28 ? '孕中期' : '孕晚期';
-    const progress = Math.round((totalDays / 280) * 100);
+    const progress = Math.round((Math.max(1, totalDays) / 280) * 100);
     
     return { week, day, totalDays: Math.max(1, totalDays), daysUntilDue, stage, progress };
   };

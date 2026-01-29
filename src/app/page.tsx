@@ -25,8 +25,8 @@ import Link from 'next/link';
 export default function HomePage() {
   const { settings, todos, shoppingList, importedItems, toggleTodo, getCurrentWeekInfo } = useAppStore();
 
-  const { week, day, stage, daysUntilDue } = getCurrentWeekInfo();
-  const progress = Math.round((week / 40) * 100);
+  const { week, day, totalDays, stage, daysUntilDue } = getCurrentWeekInfo();
+  const progress = Math.round((totalDays / 280) * 100);
 
   const pendingTodos = todos.filter((t) => !t.completed);
   const completedCount = todos.filter((t) => t.completed).length;
@@ -49,15 +49,15 @@ export default function HomePage() {
         </Link>
       )}
 
-      {/* 顶部状态栏 */}
+      {/* 顶部状态栏 - 中国标准格式 孕X+Y */}
       <div className="flex items-center gap-5 mb-5 p-5 card-soft border border-coral-100">
         <div className="w-16 h-16 rounded-2xl gradient-coral flex items-center justify-center shadow-lg flex-shrink-0">
           <Baby className="text-white" size={32} />
         </div>
         <div className="flex-1">
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="font-display text-3xl text-warm-800">第 {week} 周</span>
-            <span className="text-sm text-coral-400 font-medium">第 {day} 天</span>
+            <span className="font-display text-3xl text-warm-800">孕{week}</span>
+            <span className="text-xl text-coral-400 font-bold">+{day}</span>
             <span className="text-xs text-warm-500 bg-cream-200 px-2 py-0.5 rounded-full ml-2">{stage}</span>
           </div>
           <div className="flex items-center gap-4">

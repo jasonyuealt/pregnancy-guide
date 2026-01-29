@@ -175,14 +175,17 @@ export const useAppStore = create<AppState & AppActions>()(
       },
 
       /**
-       * 获取当前孕周信息（使用本地日期避免时区问题）
+       * 获取当前孕周信息（中国标准：从0开始计数）
+       * 末次月经第1天 = 孕0周0天
+       * 显示格式：X周+Y 或 X+Y
        */
       getCurrentWeekInfo: () => {
         const { settings } = get();
         
-        let week = settings.currentWeek || 1;
-        let day = settings.currentDay || 1;
-        let daysUntilDue = 0;
+        let week = 0;
+        let day = 0;
+        let totalDays = 1;
+        let daysUntilDue = 280;
         
         if (settings.dueDate) {
           // 使用本地日期字符串解析，避免时区问题
@@ -193,32 +196,31 @@ export const useAppStore = create<AppState & AppActions>()(
           const nowDay = now.getDate();
           
           // 计算从今天到预产期的天数（使用 UTC 避免夏令时问题）
-          const dueDate = Date.UTC(dueYear, dueMonth - 1, dueDay);
-          const nowDate = Date.UTC(nowYear, nowMonth - 1, nowDay);
-          const diffMs = dueDate - nowDate;
+          const dueDateUTC = Date.UTC(dueYear, dueMonth - 1, dueDay);
+          const nowDateUTC = Date.UTC(nowYear, nowMonth - 1, nowDay);
+          const diffMs = dueDateUTC - nowDateUTC;
           daysUntilDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
           
-          // 孕期总天数 = 280 - 距预产期天数
-          const totalDays = 280 - daysUntilDue;
+          // 孕期总天数 = 280 - 距预产期天数（末次月经第1天算第1天）
+          totalDays = 280 - daysUntilDue;
           
-          // 孕周计算：第1天是第1周第1天
+          // 中国标准孕周计算：从0开始
+          // 第1天 = 孕0周0天，第7天 = 孕0周6天，第8天 = 孕1周0天
           if (totalDays >= 1) {
-            week = Math.floor((totalDays - 1) / 7) + 1;
-            day = ((totalDays - 1) % 7) + 1;
-          } else {
-            week = 1;
-            day = 1;
+            week = Math.floor((totalDays - 1) / 7);  // 孕X周（从0开始）
+            day = (totalDays - 1) % 7;               // 第Y天（从0开始）
           }
           
+          if (week < 0) week = 0;
           if (week > 40) week = 40;
         }
         
-        // 获取阶段名称
+        // 获取阶段名称（基于周数）
         let stage = '孕早期';
-        if (week > 28) stage = '孕晚期';
-        else if (week > 12) stage = '孕中期';
+        if (week >= 28) stage = '孕晚期';
+        else if (week >= 13) stage = '孕中期';
         
-        return { week, day, stage, daysUntilDue };
+        return { week, day, totalDays, stage, daysUntilDue };
       },
     }),
     {

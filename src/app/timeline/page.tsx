@@ -24,8 +24,9 @@ import {
  */
 export default function TimelinePage() {
   const { settings, getCurrentWeekInfo, weekDataCache, setWeekData } = useAppStore();
-  const { week: actualWeek, daysUntilDue } = getCurrentWeekInfo();
+  const { week: actualWeek, day: actualDay, daysUntilDue } = getCurrentWeekInfo();
   
+  // 中国标准：孕0周到孕39周
   const [currentWeek, setCurrentWeek] = useState(actualWeek);
   const [isGenerating, setIsGenerating] = useState(false);
   const [weekContent, setWeekContent] = useState<WeekContentData | null>(null);
@@ -57,14 +58,14 @@ export default function TimelinePage() {
     }
   };
 
-  // 周数导航
-  const goToPrevWeek = () => setCurrentWeek((w) => Math.max(1, w - 1));
-  const goToNextWeek = () => setCurrentWeek((w) => Math.min(40, w + 1));
+  // 周数导航（0-39周）
+  const goToPrevWeek = () => setCurrentWeek((w) => Math.max(0, w - 1));
+  const goToNextWeek = () => setCurrentWeek((w) => Math.min(39, w + 1));
 
-  // 获取阶段
+  // 获取阶段（中国标准）
   const getStage = (w: number) => {
-    if (w <= 12) return { name: '孕早期', color: 'coral' };
-    if (w <= 28) return { name: '孕中期', color: 'sunny' };
+    if (w < 13) return { name: '孕早期', color: 'coral' };
+    if (w < 28) return { name: '孕中期', color: 'sunny' };
     return { name: '孕晚期', color: 'mint' };
   };
   const stage = getStage(currentWeek);
@@ -75,7 +76,7 @@ export default function TimelinePage() {
       <div className="flex items-center justify-between mb-4 md:mb-6 animate-fade-in">
         <button
           onClick={goToPrevWeek}
-          disabled={currentWeek <= 1}
+          disabled={currentWeek <= 0}
           className="p-2 md:p-3 bg-white rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-30"
         >
           <ChevronLeft className="text-warm-600" size={20} />
@@ -83,9 +84,11 @@ export default function TimelinePage() {
         
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 md:gap-3 mb-1">
-            <span className="font-display text-2xl md:text-4xl text-warm-800">第 {currentWeek} 周</span>
+            <span className="font-display text-2xl md:text-4xl text-warm-800">孕{currentWeek}周</span>
             {isCurrentWeek && (
-              <span className="px-2 md:px-3 py-0.5 md:py-1 bg-mint-400 text-white text-xs rounded-full font-bold">当前</span>
+              <span className="px-2 md:px-3 py-0.5 md:py-1 gradient-coral text-white text-xs rounded-full font-bold">
+                +{actualDay}
+              </span>
             )}
           </div>
           <div className="flex items-center justify-center gap-2">
@@ -102,7 +105,7 @@ export default function TimelinePage() {
 
         <button
           onClick={goToNextWeek}
-          disabled={currentWeek >= 40}
+          disabled={currentWeek >= 39}
           className="p-2 md:p-3 bg-white rounded-xl shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-30"
         >
           <ChevronRight className="text-warm-600" size={20} />
@@ -112,7 +115,7 @@ export default function TimelinePage() {
       {/* 快速跳转 - 横向滚动 */}
       <div className="flex justify-start md:justify-center gap-1 mb-6 md:mb-8 overflow-x-auto py-2 px-1 scrollbar-hide animate-fade-in">
         {Array.from({ length: 9 }, (_, i) => currentWeek - 4 + i)
-          .filter((w) => w >= 1 && w <= 40)
+          .filter((w) => w >= 0 && w <= 39)
           .map((w) => (
             <button
               key={w}
@@ -125,7 +128,7 @@ export default function TimelinePage() {
                   : 'text-warm-500 hover:bg-cream-100'
               }`}
             >
-              {w}
+              {w}周
             </button>
           ))}
       </div>

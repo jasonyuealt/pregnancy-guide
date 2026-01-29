@@ -43,7 +43,7 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  // 预览孕周（与 store 中相同的计算逻辑）
+  // 预览孕周（中国标准：从0开始）
   const getPreviewWeekInfo = () => {
     if (!dueDate) return null;
     
@@ -59,16 +59,18 @@ export default function SettingsPage() {
     
     const totalDays = 280 - daysUntilDue;
     
-    let week = 1;
-    let day = 1;
+    // 中国标准：孕X周+Y（从0开始）
+    let week = 0;
+    let day = 0;
     if (totalDays >= 1) {
-      week = Math.floor((totalDays - 1) / 7) + 1;
-      day = ((totalDays - 1) % 7) + 1;
+      week = Math.floor((totalDays - 1) / 7);
+      day = (totalDays - 1) % 7;
     }
+    if (week < 0) week = 0;
     if (week > 40) week = 40;
     
-    const stage = week <= 12 ? '孕早期' : week <= 28 ? '孕中期' : '孕晚期';
-    const progress = Math.round((week / 40) * 100);
+    const stage = week < 13 ? '孕早期' : week < 28 ? '孕中期' : '孕晚期';
+    const progress = Math.round((totalDays / 280) * 100);
     
     return { week, day, totalDays: Math.max(1, totalDays), daysUntilDue, stage, progress };
   };
@@ -153,17 +155,16 @@ export default function SettingsPage() {
 
           {preview ? (
             <div className="space-y-5">
-              {/* 孕周大数字 */}
+              {/* 孕周大数字 - 中国标准格式 X+Y */}
               <div className="flex items-center gap-5">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-coral-100 to-coral-200 flex items-center justify-center shadow-lg">
                   <Baby className="text-coral-500" size={32} />
                 </div>
                 <div>
                   <p className="font-display text-4xl text-warm-800">
-                    {preview.week}
-                    <span className="text-lg text-warm-500 ml-1">周</span>
-                    <span className="text-2xl text-warm-600 ml-3">{preview.day}</span>
-                    <span className="text-lg text-warm-500 ml-1">天</span>
+                    孕{preview.week}
+                    <span className="text-2xl text-coral-400 mx-1">+</span>
+                    <span className="text-3xl">{preview.day}</span>
                   </p>
                   <p className="text-sm text-warm-500">共 {preview.totalDays} 天</p>
                 </div>

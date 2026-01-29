@@ -42,39 +42,20 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  // 预览孕周（使用本地时间，避免时区问题）
+  // 预览孕周
   const getPreviewWeekInfo = () => {
     if (!dueDate) return null;
-    
-    // 解析预产期为本地时间
-    const [dueY, dueM, dueD] = dueDate.split('-').map(Number);
-    const dueDateObj = new Date(dueY, dueM - 1, dueD);
-    
-    // 今天（只取日期）
+    const due = new Date(dueDate);
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    // 距离预产期天数
-    const diffMs = dueDateObj.getTime() - today.getTime();
-    const daysUntilDue = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-    
-    // 末次月经 = 预产期 - 280 天
-    const lmpDate = new Date(dueDateObj);
-    lmpDate.setDate(lmpDate.getDate() - 280);
-    
-    // 从末次月经到今天的天数
-    const pregnancyDays = Math.round((today.getTime() - lmpDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    let week = 1, day = 1;
-    if (pregnancyDays >= 0) {
-      week = Math.floor(pregnancyDays / 7) + 1;
-      day = (pregnancyDays % 7) + 1;
-    }
+    const diffDays = Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDays = 280 - diffDays;
+    let week = Math.floor(totalDays / 7) + 1;
+    let day = (totalDays % 7) + 1;
     if (week < 1) { week = 1; day = 1; }
-    if (week > 42) week = 42;
-    
+    if (week > 40) week = 40;
+    const daysUntilDue = Math.max(0, diffDays);
     const stage = week <= 12 ? '孕早期' : week <= 28 ? '孕中期' : '孕晚期';
-    return { week, day, totalDays: pregnancyDays, daysUntilDue, stage };
+    return { week, day, totalDays, daysUntilDue, stage };
   };
 
   const preview = getPreviewWeekInfo();

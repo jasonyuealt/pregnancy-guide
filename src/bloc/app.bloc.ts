@@ -175,45 +175,32 @@ export const useAppStore = create<AppState & AppActions>()(
       },
 
       /**
-       * 获取当前孕周信息
-       * 使用本地时间避免时区问题
+       * 获取当前孕周信息（不依赖 class 方法，避免 persist 恢复后丢失方法）
        */
       getCurrentWeekInfo: () => {
         const { settings } = get();
         
+        // 计算当前孕周
         let week = settings.currentWeek || 1;
         let day = settings.currentDay || 1;
-        let daysUntilDue = 0;
         
         if (settings.dueDate) {
-          // 解析日期为本地时间（避免 UTC 时区问题）
-          const [dueY, dueM, dueD] = settings.dueDate.split('-').map(Number);
-          const dueDate = new Date(dueY, dueM - 1, dueD);
-          
-          // 今天的日期（只取日期部分）
+          const due = new Date(settings.dueDate);
           const now = new Date();
-          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          
-          // 距离预产期天数
-          const diffMs = dueDate.getTime() - today.getTime();
-          daysUntilDue = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
-          
-          // 末次月经日期 = 预产期 - 280 天
-          const lmpDate = new Date(dueDate);
-          lmpDate.setDate(lmpDate.getDate() - 280);
-          
-          // 从末次月经到今天的天数
-          const pregnancyDays = Math.round((today.getTime() - lmpDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          // 计算孕周（从0开始，所以第1天是第1周第1天）
-          if (pregnancyDays >= 0) {
-            week = Math.floor(pregnancyDays / 7) + 1;
-            day = (pregnancyDays % 7) + 1;
-          }
-          
-          // 限制范围
-          if (week < 1) { week = 1; day = 1; }
-          if (week > 42) week = 42; // 允许超过40周一点
+          const diffDays = Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          const totalDays = 280 - diffDays;
+          week = Math.floor(totalDays / 7) + 1;
+          day = (totalDays % 7) + 1;
+          if (week < 1) week = 1;
+          if (week > 40) week = 40;
+        }
+        
+        // 计算距离预产期天数
+        let daysUntilDue = 0;
+        if (settings.dueDate) {
+          const due = new Date(settings.dueDate);
+          const now = new Date();
+          daysUntilDue = Math.max(0, Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
         }
         
         // 获取阶段名称

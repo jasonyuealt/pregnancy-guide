@@ -140,32 +140,78 @@ export async function generateWeekContent(week: number): Promise<WeekContentData
 }
 
 /**
- * 提取小红书内容
+ * 小红书解析结果
  */
-export async function extractXiaohongshuContent(content: string): Promise<string> {
-  const systemPrompt = `你是一个内容提取助手。请从用户提供的小红书文章内容中提取孕期相关信息。
-请使用 JSON 格式返回，包含以下字段：
-{
-  "title": "文章标题",
-  "stage": "所属阶段（early/middle/late/hospital）",
-  "targetWeek": 具体孕周数（如果能识别，否则为 null）,
-  "products": [
-    { "name": "产品名称", "description": "产品描述" }
-  ],
-  "tips": ["注意事项1", "注意事项2"],
-  "experiences": ["经验分享1", "经验分享2"],
-  "tags": ["标签1", "标签2"]
+export interface XiaohongshuParseResult {
+  title: string;
+  stage: 'early' | 'middle' | 'late' | 'hospital' | null;
+  targetWeek: number | null;
+  contentType: 'product' | 'tip' | 'nutrition' | 'experience';
+  summary: string;
+  products: { name: string; reason: string }[];
+  tips: string[];
+  suggestedCategory: string;
 }
-请准确提取信息，不要编造内容。`;
 
-  const userPrompt = `请从以下小红书文章中提取孕期相关信息：
+/**
+ * 解析小红书链接/内容
+ * 由于无法直接访问 URL，使用 AI 根据链接信息推断内容
+ */
+export async function parseXiaohongshuUrl(urlOrContent: string): Promise<XiaohongshuParseResult> {
+  const systemPrompt = `你是一个孕期内容分析助手。用户会提供小红书文章的链接或内容描述。
+请分析这个内容，判断它属于孕期的哪个阶段、哪种类型，并提取关键信息。
 
-${content}`;
+请严格使用以下 JSON 格式返回（不要添加任何其他文字）：
+{
+  "title": "推测的文章标题（简洁，10字以内）",
+  "stage": "early/middle/late/hospital 或 null（无法确定时）",
+  "targetWeek": 具体孕周数（1-40）或 null,
+  "contentType": "product/tip/nutrition/experience 之一",
+  "summary": "内容摘要（30字以内）",
+  "products": [
+    { "name": "提到的产品名", "reason": "推荐理由" }
+  ],
+  "tips": ["提取的注意事项或经验"],
+  "suggestedCategory": "建议归类到：待产包/孕期营养/产检准备/生活护理/运动建议 等"
+}
 
-  return chat([
+注意：
+1. 如果是小红书链接，根据链接中的关键词推测内容
+2. 如果是文章内容，直接提取信息
+3. products 数组可以为空
+4. tips 至少提供 1 条`;
+
+  const userPrompt = `请分析以下小红书内容并提取孕期相关信息：
+
+${urlOrContent}`;
+
+  const response = await chat([
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ]);
+
+  try {
+    let jsonStr = response;
+    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || 
+                      response.match(/```\s*([\s\S]*?)\s*```/) ||
+                      response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1] || jsonMatch[0];
+    }
+    return JSON.parse(jsonStr);
+  } catch {
+    console.error('小红书解析失败:', response);
+    return {
+      title: '解析失败',
+      stage: null,
+      targetWeek: null,
+      contentType: 'tip',
+      summary: '无法解析该内容，请重试',
+      products: [],
+      tips: [],
+      suggestedCategory: '其他',
+    };
+  }
 }
 
 /**

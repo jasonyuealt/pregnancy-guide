@@ -175,32 +175,42 @@ export const useAppStore = create<AppState & AppActions>()(
       },
 
       /**
-       * 获取当前孕周信息（不依赖 class 方法，避免 persist 恢复后丢失方法）
+       * 获取当前孕周信息（使用本地日期避免时区问题）
        */
       getCurrentWeekInfo: () => {
         const { settings } = get();
         
-        // 计算当前孕周
         let week = settings.currentWeek || 1;
         let day = settings.currentDay || 1;
-        
-        if (settings.dueDate) {
-          const due = new Date(settings.dueDate);
-          const now = new Date();
-          const diffDays = Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          const totalDays = 280 - diffDays;
-          week = Math.floor(totalDays / 7) + 1;
-          day = (totalDays % 7) + 1;
-          if (week < 1) week = 1;
-          if (week > 40) week = 40;
-        }
-        
-        // 计算距离预产期天数
         let daysUntilDue = 0;
+        
         if (settings.dueDate) {
-          const due = new Date(settings.dueDate);
+          // 使用本地日期字符串解析，避免时区问题
+          const [dueYear, dueMonth, dueDay] = settings.dueDate.split('-').map(Number);
           const now = new Date();
-          daysUntilDue = Math.max(0, Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+          const nowYear = now.getFullYear();
+          const nowMonth = now.getMonth() + 1;
+          const nowDay = now.getDate();
+          
+          // 计算从今天到预产期的天数（使用 UTC 避免夏令时问题）
+          const dueDate = Date.UTC(dueYear, dueMonth - 1, dueDay);
+          const nowDate = Date.UTC(nowYear, nowMonth - 1, nowDay);
+          const diffMs = dueDate - nowDate;
+          daysUntilDue = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+          
+          // 孕期总天数 = 280 - 距预产期天数
+          const totalDays = 280 - daysUntilDue;
+          
+          // 孕周计算：第1天是第1周第1天
+          if (totalDays >= 1) {
+            week = Math.floor((totalDays - 1) / 7) + 1;
+            day = ((totalDays - 1) % 7) + 1;
+          } else {
+            week = 1;
+            day = 1;
+          }
+          
+          if (week > 40) week = 40;
         }
         
         // 获取阶段名称

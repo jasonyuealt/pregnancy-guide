@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
+import QuickImport from "@/components/common/QuickImport";
 
 export const metadata: Metadata = {
   title: "孕期指南 - 温馨陪伴每一天",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 
 /**
  * 根布局组件
- * 包含侧边栏和主内容区域
+ * 包含侧边栏、主内容区域、全局快速导入悬浮按钮
  */
 export default function RootLayout({
   children,
@@ -31,6 +32,9 @@ export default function RootLayout({
             {children}
           </main>
         </div>
+        
+        {/* 全局悬浮：快速导入小红书 */}
+        <QuickImport />
       </body>
     </html>
   );

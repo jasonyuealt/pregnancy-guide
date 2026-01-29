@@ -174,11 +174,40 @@ export const useAppStore = create<AppState & AppActions>()(
         set({ isLoading: loading });
       },
 
+      /**
+       * 获取当前孕周信息（不依赖 class 方法，避免 persist 恢复后丢失方法）
+       */
       getCurrentWeekInfo: () => {
-        const settings = get().settings;
-        const { week, day } = settings.calculateCurrentWeek();
-        const stage = settings.getStageName();
-        const daysUntilDue = settings.getDaysUntilDue();
+        const { settings } = get();
+        
+        // 计算当前孕周
+        let week = settings.currentWeek || 1;
+        let day = settings.currentDay || 1;
+        
+        if (settings.dueDate) {
+          const due = new Date(settings.dueDate);
+          const now = new Date();
+          const diffDays = Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          const totalDays = 280 - diffDays;
+          week = Math.floor(totalDays / 7) + 1;
+          day = (totalDays % 7) + 1;
+          if (week < 1) week = 1;
+          if (week > 40) week = 40;
+        }
+        
+        // 计算距离预产期天数
+        let daysUntilDue = 0;
+        if (settings.dueDate) {
+          const due = new Date(settings.dueDate);
+          const now = new Date();
+          daysUntilDue = Math.max(0, Math.floor((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+        }
+        
+        // 获取阶段名称
+        let stage = '孕早期';
+        if (week > 28) stage = '孕晚期';
+        else if (week > 12) stage = '孕中期';
+        
         return { week, day, stage, daysUntilDue };
       },
     }),

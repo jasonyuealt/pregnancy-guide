@@ -11,11 +11,16 @@ import {
   AlertCircle,
   Settings,
   Sparkles,
+  Heart,
+  Apple,
+  Footprints,
+  Stethoscope,
+  Plus,
 } from 'lucide-react';
 import Link from 'next/link';
 
 /**
- * 首页 - PC 宽屏紧凑布局
+ * 首页 - 充实内容 + 紧凑布局
  */
 export default function HomePage() {
   const { settings, todos, shoppingList, importedItems, toggleTodo, getCurrentWeekInfo } = useAppStore();
@@ -29,7 +34,7 @@ export default function HomePage() {
   const hasSettings = !!settings.dueDate;
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in min-h-[calc(100vh-4rem)]">
       {/* 未设置预产期提示 */}
       {!hasSettings && (
         <Link
@@ -44,157 +49,209 @@ export default function HomePage() {
         </Link>
       )}
 
-      {/* 顶部状态栏 - 横向紧凑 */}
-      <div className="flex items-center gap-4 mb-4 p-4 card-soft border border-coral-100">
-        <div className="w-14 h-14 rounded-xl gradient-coral flex items-center justify-center shadow-lg flex-shrink-0">
-          <Baby className="text-white" size={28} />
+      {/* 顶部状态栏 */}
+      <div className="flex items-center gap-5 mb-5 p-5 card-soft border border-coral-100">
+        <div className="w-16 h-16 rounded-2xl gradient-coral flex items-center justify-center shadow-lg flex-shrink-0">
+          <Baby className="text-white" size={32} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-2xl text-warm-800">第 {week} 周</span>
+        <div className="flex-1">
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="font-display text-3xl text-warm-800">第 {week} 周</span>
             <span className="text-sm text-coral-400 font-medium">第 {day} 天</span>
             <span className="text-xs text-warm-500 bg-cream-200 px-2 py-0.5 rounded-full ml-2">{stage}</span>
           </div>
-          <div className="flex items-center gap-4 mt-1">
-            <span className="text-sm text-warm-600">距预产期 {daysUntilDue} 天</span>
-            <div className="flex-1 h-1.5 bg-cream-200 rounded-full overflow-hidden max-w-xs">
-              <div className="h-full progress-warm rounded-full" style={{ width: `${progress}%` }} />
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-warm-600">距预产期 <strong className="text-coral-500">{daysUntilDue}</strong> 天</span>
+            <div className="flex-1 h-2 bg-cream-200 rounded-full overflow-hidden max-w-md">
+              <div className="h-full progress-warm rounded-full transition-all duration-700" style={{ width: `${progress}%` }} />
             </div>
-            <span className="text-xs text-warm-500">{progress}%</span>
+            <span className="text-sm text-warm-600 font-medium">{progress}%</span>
           </div>
         </div>
         <Link
           href="/timeline"
-          className="px-4 py-2 bg-coral-50 text-coral-500 rounded-lg font-medium hover:bg-coral-100 transition-colors duration-200 cursor-pointer flex items-center gap-1 flex-shrink-0"
+          className="px-5 py-2.5 gradient-coral text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center gap-1 flex-shrink-0"
         >
-          详情 <ChevronRight size={14} />
+          查看详情 <ChevronRight size={16} />
         </Link>
       </div>
 
-      {/* 三栏布局 - 充分利用宽屏 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* 主内容区 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* 左栏：本周待办 */}
-        <div className="card-soft p-4 border border-mint-100">
-          <div className="flex items-center justify-between mb-3">
+        <div className="card-soft p-5 border border-mint-100 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="text-mint-500" size={16} />
-              <span className="font-semibold text-warm-800">本周待办</span>
+              <CheckCircle2 className="text-mint-500" size={18} />
+              <span className="font-display text-lg text-warm-800">本周待办</span>
             </div>
-            <span className="text-xs text-white font-bold bg-mint-400 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-white font-bold bg-mint-400 px-2.5 py-1 rounded-full">
               {completedCount}/{todos.length}
             </span>
           </div>
-          <div className="space-y-1">
-            {pendingTodos.slice(0, 5).map((todo) => (
+          <div className="space-y-2 flex-1">
+            {todos.map((todo) => (
               <label
                 key={todo.id}
-                className="flex items-center gap-2 p-2 bg-cream-50 hover:bg-cream-100 rounded-lg cursor-pointer transition-colors duration-150"
+                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-150 ${
+                  todo.completed ? 'bg-mint-50 border border-mint-100' : 'bg-cream-50 hover:bg-cream-100'
+                }`}
               >
                 <input
                   type="checkbox"
                   checked={todo.completed}
                   onChange={() => toggleTodo(todo.id)}
-                  className="w-4 h-4 rounded"
+                  className="w-5 h-5 rounded-lg"
                 />
-                <span className="text-sm text-warm-700">{todo.title}</span>
+                <span className={`text-sm ${todo.completed ? 'text-warm-500 line-through' : 'text-warm-700'}`}>
+                  {todo.title}
+                </span>
+                {todo.completed && <CheckCircle2 size={14} className="text-mint-400 ml-auto" />}
               </label>
             ))}
-            {pendingTodos.length === 0 && (
-              <p className="text-sm text-warm-500 text-center py-3">全部完成 ✓</p>
-            )}
           </div>
+          <button className="mt-4 w-full py-2.5 border-2 border-dashed border-mint-200 rounded-xl text-sm text-mint-500 font-medium hover:border-mint-400 hover:bg-mint-50 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1">
+            <Plus size={16} />
+            添加待办
+          </button>
         </div>
 
         {/* 中栏：本周重点 */}
-        <div className="card-soft p-4 border border-coral-100">
-          <div className="flex items-center justify-between mb-3">
+        <div className="card-soft p-5 border border-coral-100 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <AlertCircle className="text-coral-400" size={16} />
-              <span className="font-semibold text-warm-800">本周重点</span>
+              <AlertCircle className="text-coral-400" size={18} />
+              <span className="font-display text-lg text-warm-800">本周重点</span>
             </div>
-            <Link href={`/timeline?week=${week}`} className="text-xs text-coral-400 hover:text-coral-500 cursor-pointer">
-              更多
+            <Link href={`/timeline?week=${week}`} className="text-xs text-coral-400 hover:text-coral-500 font-medium cursor-pointer">
+              了解更多
             </Link>
           </div>
-          <div className="space-y-2">
-            <div className="p-2.5 bg-gradient-to-r from-coral-50 to-transparent rounded-lg border-l-2 border-coral-300">
-              <p className="text-xs text-coral-400 font-medium">胎儿发育</p>
-              <p className="text-sm text-warm-700">宝宝约 30cm，能听到声音了</p>
+          <div className="space-y-3 flex-1">
+            <div className="p-4 bg-gradient-to-r from-coral-50 to-coral-100/30 rounded-xl border border-coral-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Baby className="text-coral-400" size={16} />
+                <span className="text-xs text-coral-500 font-bold">胎儿发育</span>
+              </div>
+              <p className="text-sm text-warm-700 leading-relaxed">宝宝约 30cm，600g，像木瓜大小。听力发育完善，可以听到外界声音了！</p>
             </div>
-            <div className="p-2.5 bg-gradient-to-r from-sunny-50 to-transparent rounded-lg border-l-2 border-sunny-400">
-              <p className="text-xs text-sunny-500 font-medium">重要产检</p>
-              <p className="text-sm text-warm-700">糖耐量测试（24-28周）</p>
+            <div className="p-4 bg-gradient-to-r from-sunny-50 to-sunny-100/30 rounded-xl border border-sunny-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Stethoscope className="text-sunny-500" size={16} />
+                <span className="text-xs text-sunny-600 font-bold">重要产检</span>
+              </div>
+              <p className="text-sm text-warm-700 leading-relaxed">糖耐量测试（OGTT），24-28周必做，筛查妊娠糖尿病。</p>
             </div>
-            <div className="p-2.5 bg-gradient-to-r from-mint-50 to-transparent rounded-lg border-l-2 border-mint-400">
-              <p className="text-xs text-mint-500 font-medium">注意事项</p>
-              <p className="text-sm text-warm-700">记录胎动，每天 10 次以上</p>
+            <div className="p-4 bg-gradient-to-r from-mint-50 to-mint-100/30 rounded-xl border border-mint-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Footprints className="text-mint-500" size={16} />
+                <span className="text-xs text-mint-600 font-bold">注意事项</span>
+              </div>
+              <p className="text-sm text-warm-700 leading-relaxed">记录胎动，每天应感受 10 次以上，注意宝宝的活动规律。</p>
             </div>
           </div>
         </div>
 
-        {/* 右栏：本周购买 */}
-        <div className="card-soft p-4 border border-sunny-100">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="text-sunny-500" size={16} />
-              <span className="font-semibold text-warm-800">本周购买</span>
-            </div>
-            <Link href="/shopping" className="text-xs text-sunny-500 hover:text-sunny-600 cursor-pointer">
-              全部
-            </Link>
-          </div>
-          <div className="space-y-1">
-            {pendingShopping.slice(0, 4).map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between p-2 bg-cream-50 rounded-lg"
-              >
-                <span className="text-sm text-warm-700">{item.name}</span>
-                {item.source === 'xiaohongshu' && (
-                  <span className="text-xs text-red-400">小红书</span>
-                )}
+        {/* 右栏：本周购买 + 饮食建议 */}
+        <div className="space-y-5">
+          {/* 本周购买 */}
+          <div className="card-soft p-5 border border-sunny-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="text-sunny-500" size={18} />
+                <span className="font-display text-lg text-warm-800">本周购买</span>
               </div>
-            ))}
-            {pendingShopping.length === 0 && (
-              <p className="text-sm text-warm-500 text-center py-3">暂无待购</p>
-            )}
+              <Link href="/shopping" className="text-xs text-sunny-500 hover:text-sunny-600 font-medium cursor-pointer">
+                查看全部
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {shoppingList.slice(0, 4).map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center justify-between p-3 rounded-xl ${
+                    item.checked ? 'bg-mint-50 border border-mint-100' : 'bg-cream-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={item.checked} readOnly className="w-4 h-4 rounded" />
+                    <span className={`text-sm ${item.checked ? 'text-warm-500 line-through' : 'text-warm-700'}`}>
+                      {item.name}
+                    </span>
+                  </div>
+                  {item.source === 'xiaohongshu' && (
+                    <span className="text-xs text-red-400 bg-red-50 px-2 py-0.5 rounded-full">小红书</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 饮食建议 */}
+          <div className="card-soft p-5 border border-lavender-100">
+            <div className="flex items-center gap-2 mb-4">
+              <Apple className="text-lavender-400" size={18} />
+              <span className="font-display text-lg text-warm-800">饮食建议</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2 p-2">
+                <Heart className="text-coral-400 mt-0.5 flex-shrink-0" size={14} />
+                <span className="text-sm text-warm-600">增加蛋白质摄入（鱼、蛋、奶）</span>
+              </div>
+              <div className="flex items-start gap-2 p-2">
+                <Heart className="text-coral-400 mt-0.5 flex-shrink-0" size={14} />
+                <span className="text-sm text-warm-600">多吃富含铁的食物，预防贫血</span>
+              </div>
+              <div className="flex items-start gap-2 p-2">
+                <Heart className="text-coral-400 mt-0.5 flex-shrink-0" size={14} />
+                <span className="text-sm text-warm-600">控制糖分摄入，预防妊娠糖尿病</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 底部：小红书导入 + AI 生成入口 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      {/* 底部：小红书导入 + AI 入口 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
         {/* 最近导入 */}
-        {importedItems.length > 0 && (
-          <div className="flex items-center gap-3 p-3 bg-cream-100/60 rounded-xl border border-cream-200">
-            <Bookmark className="text-warm-500 flex-shrink-0" size={16} />
-            <span className="text-sm text-warm-600">最近导入:</span>
-            <div className="flex gap-2 overflow-x-auto flex-1">
-              {importedItems.slice(0, 2).map((item) => (
-                <span key={item.id} className="text-xs bg-white px-2 py-1 rounded-md text-warm-600 whitespace-nowrap">
-                  {item.sourceTitle.length > 10 ? `${item.sourceTitle.slice(0, 10)}...` : item.sourceTitle}
-                </span>
-              ))}
+        <div className="card-soft p-4 border border-cream-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Bookmark className="text-red-400" size={16} />
+              <span className="font-semibold text-warm-800">小红书导入</span>
             </div>
-            <Link href="/import" className="text-xs text-warm-500 hover:text-warm-600 flex-shrink-0 cursor-pointer">
+            <Link href="/import" className="text-xs text-warm-500 hover:text-warm-600 cursor-pointer">
               管理
             </Link>
           </div>
-        )}
+          <div className="flex gap-2 flex-wrap">
+            {importedItems.length > 0 ? (
+              importedItems.slice(0, 3).map((item) => (
+                <span key={item.id} className="text-xs bg-red-50 text-red-500 px-3 py-1.5 rounded-lg">
+                  {item.sourceTitle.length > 12 ? `${item.sourceTitle.slice(0, 12)}...` : item.sourceTitle}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-warm-500">暂无导入内容</span>
+            )}
+          </div>
+        </div>
 
-        {/* AI 生成提示 */}
+        {/* AI 生成入口 */}
         <Link
           href="/timeline"
-          className="flex items-center gap-3 p-3 bg-gradient-to-r from-lavender-50 to-coral-50 rounded-xl border border-lavender-100 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          className="card-soft p-4 border border-lavender-100 bg-gradient-to-r from-lavender-50 to-coral-50 hover:shadow-lg transition-all duration-200 cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-            <Sparkles className="text-lavender-400" size={16} />
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow">
+              <Sparkles className="text-lavender-400" size={24} />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-warm-800">AI 生成本周完整内容</p>
+              <p className="text-sm text-warm-500">胎儿发育、注意事项、产检、购物建议</p>
+            </div>
+            <ChevronRight className="text-warm-400" size={20} />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-warm-700">AI 生成本周内容</p>
-            <p className="text-xs text-warm-500">获取专业孕期指导</p>
-          </div>
-          <ChevronRight className="text-warm-400" size={16} />
         </Link>
       </div>
     </div>

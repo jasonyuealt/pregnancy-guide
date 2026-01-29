@@ -45,10 +45,9 @@ export default function DatePicker({ value, onChange, placeholder = '选择日�
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   };
 
-  // 选择日期
+  // 选择日期（使用本地时间，避免时区问题）
   const handleSelect = (day: number) => {
-    const selected = new Date(year, month, day);
-    const formatted = selected.toISOString().split('T')[0];
+    const formatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     onChange(formatted);
     setIsOpen(false);
   };
@@ -156,7 +155,8 @@ export default function DatePicker({ value, onChange, placeholder = '选择日�
               onClick={() => {
                 const today = new Date();
                 setViewDate(today);
-                onChange(today.toISOString().split('T')[0]);
+                const formatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                onChange(formatted);
                 setIsOpen(false);
               }}
               className="flex-1 py-1.5 text-xs text-warm-600 hover:text-coral-500 font-medium cursor-pointer transition-colors duration-200"

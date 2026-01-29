@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="coral" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8A6B"/>
+      <stop offset="100%" style="stop-color:#FFB5A7"/>
+    </linearGradient>
+  </defs>
+  <!-- 背景 -->
+  <rect width="32" height="32" rx="8" fill="url(#coral)"/>
+  <!-- 宝宝脸 -->
+  <circle cx="16" cy="15" r="9" fill="#FFF5F0"/>
+  <!-- 腮红 -->
+  <ellipse cx="10.5" cy="16" rx="2" ry="1.5" fill="#FFD4CC" opacity="0.8"/>
+  <ellipse cx="21.5" cy="16" rx="2" ry="1.5" fill="#FFD4CC" opacity="0.8"/>
+  <!-- 眼睛 -->
+  <circle cx="13" cy="14" r="1.5" fill="#5D4E46"/>
+  <circle cx="19" cy="14" r="1.5" fill="#5D4E46"/>
+  <!-- 眼睛高光 -->
+  <circle cx="13.5" cy="13.5" r="0.5" fill="white"/>
+  <circle cx="19.5" cy="13.5" r="0.5" fill="white"/>
+  <!-- 微笑 -->
+  <path d="M13 18.5 Q16 21 19 18.5" stroke="#5D4E46" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- 头发/刘海 -->
+  <path d="M9 11 Q10 7 16 7 Q22 7 23 11" stroke="#8B7355" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="11" cy="9" r="1.5" fill="#8B7355"/>
+  <circle cx="16" cy="7.5" r="1.5" fill="#8B7355"/>
+  <circle cx="21" cy="9" r="1.5" fill="#8B7355"/>
+</svg>

@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>孕期指南 - PC端原型设计</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 使用更圆润温馨的字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Nunito:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            // 阳光宝贝配色方案 - 更鲜艳活泼
+            coral: {
+              50: '#FFF5F3',
+              100: '#FFE8E3',
+              200: '#FFD4CC',
+              300: '#FFB5A7',  // 蜜桃粉
+              400: '#FF8A6B',  // 珊瑚橙 主色
+              500: '#FF6B4A',
+              600: '#E85A3C',
+            },
+            mint: {
+              50: '#EFFAF7',
+              100: '#D4F3EA',
+              200: '#A8E6D5',
+              300: '#7DD3C0',  // 薄荷绿
+              400: '#5BC4AD',
+              500: '#3DAE96',
+            },
+            sunny: {
+              50: '#FFFBF0',
+              100: '#FFF4D9',
+              200: '#FFE9B3',
+              300: '#FFD97D',  // 阳光黄
+              400: '#FFC94D',
+              500: '#FFB81C',
+            },
+            lavender: {
+              50: '#F9F5FF',
+              100: '#F0E8FF',
+              200: '#E2D4FF',
+              300: '#C9B3FF',  // 薰衣草紫
+              400: '#A78BFA',
+            },
+            cream: {
+              50: '#FFFCF8',
+              100: '#FFF9F3',
+              200: '#FFF3E8',
+              300: '#FFECD9',
+            },
+            warm: {
+              600: '#7A6860',
+              700: '#5D4E46',
+              800: '#4A3F3A',
+            },
+          },
+          fontFamily: {
+            // 圆润可爱的字体
+            display: ['ZCOOL KuaiLe', 'Nunito', 'system-ui', 'sans-serif'],
+            body: ['Nunito', 'Noto Sans SC', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            '4xl': '2rem',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      font-family: 'Nunito', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    h1, h2, h3, .font-display {
+      font-family: 'ZCOOL KuaiLe', 'Nunito', system-ui, sans-serif;
+      letter-spacing: 0.02em;
+    }
+    
+    /* 柔和圆润的卡片阴影 */
+    .card-soft {
+      box-shadow: 0 4px 20px rgba(255, 138, 107, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    .card-hover:hover {
+      box-shadow: 0 12px 32px rgba(255, 138, 107, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+      transform: translateY(-3px);
+    }
+    
+    /* 侧边栏样式 */
+    .sidebar-item {
+      transition: all 0.25s ease;
+      border-radius: 16px;
+      margin: 4px 12px;
+    }
+    
+    .sidebar-item:hover {
+      background: linear-gradient(135deg, rgba(255, 138, 107, 0.12) 0%, rgba(255, 217, 125, 0.08) 100%);
+    }
+    
+    .sidebar-item.active {
+      background: linear-gradient(135deg, rgba(255, 138, 107, 0.18) 0%, rgba(255, 217, 125, 0.12) 100%);
+      box-shadow: 0 2px 8px rgba(255, 138, 107, 0.15);
+    }
+    
+    /* 温暖活泼的渐变 */
+    .gradient-warm {
+      background: linear-gradient(135deg, #FFF5F3 0%, #FFFBF0 50%, #EFFAF7 100%);
+    }
+    
+    .gradient-coral {
+      background: linear-gradient(135deg, #FF8A6B 0%, #FFB5A7 100%);
+    }
+    
+    .gradient-sunny {
+      background: linear-gradient(135deg, #FFD97D 0%, #FFC94D 100%);
+    }
+    
+    .gradient-mint {
+      background: linear-gradient(135deg, #7DD3C0 0%, #5BC4AD 100%);
+    }
+    
+    .gradient-rainbow {
+      background: linear-gradient(135deg, #FF8A6B 0%, #FFD97D 35%, #7DD3C0 70%, #C9B3FF 100%);
+    }
+    
+    /* 进度条渐变 */
+    .progress-warm {
+      background: linear-gradient(90deg, #FF8A6B 0%, #FFD97D 50%, #7DD3C0 100%);
+    }
+    
+    /* 视图切换 */
+    .view-tab {
+      transition: all 0.2s ease;
+    }
+    
+    .view-tab.active {
+      background: white;
+      box-shadow: 0 2px 8px rgba(255, 138, 107, 0.15);
+    }
+    
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FFF3E8;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #FFB5A7 0%, #FF8A6B 100%);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #FF8A6B 0%, #FF6B4A 100%);
+    }
+    
+    /* 柔和的输入框聚焦 */
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #FF8A6B;
+      box-shadow: 0 0 0 4px rgba(255, 138, 107, 0.15);
+    }
+    
+    /* 复选框样式 */
+    input[type="checkbox"] {
+      accent-color: #7DD3C0;
+      border-radius: 6px;
+    }
+    
+    /* 表格行悬停 */
+    tbody tr:hover {
+      background-color: #FFFCF8;
+    }
+    
+    /* 按钮波纹效果 */
+    .btn-bounce:hover {
+      animation: bounce 0.3s ease;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    
+    /* 可爱的浮动动画 */
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body class="bg-cream-100 min-h-screen">
+  
+  <!-- ==================== 页面1: 首页仪表盘 ==================== -->
+  <section class="mb-20">
+    <div class="text-center py-8 bg-white border-b border-coral-100">
+      <h1 class="text-2xl font-bold text-warm-800">页面1：首页仪表盘</h1>
+      <p class="text-warm-600 text-sm mt-1 font-body">整体概览，了解当前孕期状态和待办事项</p>
+    </div>
+    
+    <div class="flex min-h-[880px]">
+      <!-- 侧边栏 -->
+      <aside class="w-64 bg-white border-r border-coral-100 flex-shrink-0">
+        <!-- Logo -->
+        <div class="p-6 border-b border-coral-50">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl gradient-coral flex items-center justify-center shadow-lg float-animation">
+              <span class="text-2xl">👶</span>
+            </div>
+            <div>
+              <h1 class="font-display text-xl text-warm-800">孕期指南</h1>
+              <p class="text-xs text-coral-400 font-medium">温馨陪伴每一天 💕</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 导航 -->
+        <nav class="py-5">
+          <div class="px-5 mb-3">
+            <span class="text-xs text-warm-600 font-bold tracking-wider uppercase">主要功能</span>
+          </div>
+          <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-coral-100 flex items-center justify-center">
+              <i class="fas fa-home text-coral-400"></i>
+            </div>
+            <span class="font-semibold">首页概览</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-sunny-100 flex items-center justify-center">
+              <i class="fas fa-calendar-alt text-sunny-500"></i>
+            </div>
+            <span class="font-medium">孕期时间轴</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-mint-100 flex items-center justify-center">
+              <i class="fas fa-shopping-bag text-mint-400"></i>
+            </div>
+            <span class="font-medium">购物清单</span>
+          </a>
+          
+          <div class="px-5 mt-8 mb-3">
+            <span class="text-xs text-warm-600 font-bold tracking-wider uppercase">智能助手</span>
+          </div>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-lavender-100 flex items-center justify-center">
+              <i class="fas fa-magic text-lavender-400"></i>
+            </div>
+            <span class="font-medium">AI 生成内容</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-coral-100 flex items-center justify-center">
+              <i class="fas fa-file-import text-coral-400"></i>
+            </div>
+            <span class="font-medium">小红书导入</span>
+          </a>
+          
+          <div class="px-5 mt-8 mb-3">
+            <span class="text-xs text-warm-600 font-bold tracking-wider uppercase">其他</span>
+          </div>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-cream-200 flex items-center justify-center">
+              <i class="fas fa-cog text-warm-600"></i>
+            </div>
+            <span class="font-medium">设置</span>
+          </a>
+        </nav>
+        
+        <!-- 底部卡片 -->
+        <div class="px-4 mt-4">
+          <div class="p-4 bg-gradient-to-br from-mint-100 to-sunny-100 rounded-2xl border border-mint-200">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">💡</span>
+              <span class="text-sm font-bold text-warm-700">今日小贴士</span>
+            </div>
+            <p class="text-xs text-warm-600 leading-relaxed font-medium">
+              记得多喝水，保持心情愉悦，宝宝能感受到你的情绪哦~
+            </p>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- 主内容区 -->
+      <main class="flex-1 p-8 bg-cream-100">
+        <!-- 顶部栏 -->
+        <header class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="font-display text-3xl text-warm-800">欢迎回来，准妈妈 ☀️</h2>
+            <p class="text-warm-600 mt-2 font-medium">今天是 2024年6月15日 星期六，孕期第 168 天</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <button class="px-6 py-3 gradient-coral text-white rounded-2xl hover:opacity-90 transition shadow-lg btn-bounce flex items-center gap-2 font-semibold">
+              <i class="fas fa-magic"></i>
+              <span>AI 生成本周内容</span>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center hover:bg-sunny-50 transition cursor-pointer shadow-md">
+              <i class="fas fa-bell text-sunny-500 text-lg"></i>
+            </div>
+          </div>
+        </header>
+        
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-4 gap-5 mb-8">
+          <!-- 当前孕周 -->
+          <div class="bg-white rounded-3xl p-6 card-soft transition-all card-hover cursor-pointer border border-coral-100">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-coral-100 to-coral-200 flex items-center justify-center">
+                <span class="text-2xl">🤰</span>
+              </div>
+              <span class="text-xs text-white font-bold bg-coral-400 px-3 py-1 rounded-full">孕中期</span>
+            </div>
+            <div class="text-4xl font-bold text-warm-800 mb-1">24<span class="text-lg font-semibold text-warm-600 ml-1">周</span></div>
+            <p class="text-sm text-warm-600 font-medium">第 3 天</p>
+          </div>
+          
+          <!-- 距离预产期 -->
+          <div class="bg-white rounded-3xl p-6 card-soft transition-all card-hover cursor-pointer border border-sunny-100">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sunny-100 to-sunny-200 flex items-center justify-center">
+                <span class="text-2xl">📅</span>
+              </div>
+              <span class="text-xs text-white font-bold bg-sunny-400 px-3 py-1 rounded-full">倒计时</span>
+            </div>
+            <div class="text-4xl font-bold text-warm-800 mb-1">112<span class="text-lg font-semibold text-warm-600 ml-1">天</span></div>
+            <p class="text-sm text-warm-600 font-medium">预产期 10月5日</p>
+          </div>
+          
+          <!-- 本周待办 -->
+          <div class="bg-white rounded-3xl p-6 card-soft transition-all card-hover cursor-pointer border border-mint-100">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-mint-100 to-mint-200 flex items-center justify-center">
+                <span class="text-2xl">✅</span>
+              </div>
+              <span class="text-xs text-warm-600 font-bold bg-mint-100 px-3 py-1 rounded-full">本周</span>
+            </div>
+            <div class="text-4xl font-bold text-warm-800 mb-1">5<span class="text-lg font-semibold text-warm-600">/8</span></div>
+            <p class="text-sm text-warm-600 font-medium">待办已完成</p>
+          </div>
+          
+          <!-- 购物清单 -->
+          <div class="bg-white rounded-3xl p-6 card-soft transition-all card-hover cursor-pointer border border-lavender-100">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-lavender-100 to-lavender-200 flex items-center justify-center">
+                <span class="text-2xl">🛒</span>
+              </div>
+              <span class="text-xs text-warm-600 font-bold bg-lavender-100 px-3 py-1 rounded-full">待产包</span>
+            </div>
+            <div class="text-4xl font-bold text-warm-800 mb-1">18<span class="text-lg font-semibold text-warm-600">/32</span></div>
+            <p class="text-sm text-warm-600 font-medium">物品已准备</p>
+          </div>
+        </div>
+        
+        <!-- 主要内容区 -->
+        <div class="grid grid-cols-3 gap-6">
+          <!-- 左侧：本周概览 -->
+          <div class="col-span-2 space-y-6">
+            <!-- 孕期进度 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-coral-50">
+              <h3 class="font-display text-xl text-warm-800 mb-5">🌈 孕期进度</h3>
+              <div class="flex items-center gap-8">
+                <div class="flex-1">
+                  <div class="flex justify-between text-sm mb-3 font-semibold">
+                    <span class="text-coral-400">孕早期</span>
+                    <span class="text-sunny-500">孕中期</span>
+                    <span class="text-mint-400">孕晚期</span>
+                  </div>
+                  <div class="h-5 bg-cream-200 rounded-full overflow-hidden shadow-inner">
+                    <div class="h-full progress-warm rounded-full transition-all" style="width: 60%"></div>
+                  </div>
+                  <div class="flex justify-between text-xs text-warm-600 mt-2 font-medium">
+                    <span>1周</span>
+                    <span>12周</span>
+                    <span>28周</span>
+                    <span>40周</span>
+                  </div>
+                </div>
+                <div class="text-center px-8 border-l-2 border-cream-200">
+                  <div class="text-5xl font-bold bg-gradient-to-r from-coral-400 to-sunny-400 bg-clip-text text-transparent">60%</div>
+                  <p class="text-sm text-warm-600 mt-1 font-semibold">已完成</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 本周重点 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-coral-50">
+              <div class="flex items-center justify-between mb-5">
+                <h3 class="font-display text-xl text-warm-800">🎯 第 24 周重点</h3>
+                <a href="#" class="text-sm text-coral-400 hover:text-coral-500 transition flex items-center gap-1 font-semibold">
+                  查看详情 <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="p-5 bg-gradient-to-br from-coral-50 to-coral-100 rounded-2xl border border-coral-200 transition-all hover:shadow-lg cursor-pointer">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="text-3xl">👶</span>
+                    <h4 class="font-bold text-warm-800">胎儿发育</h4>
+                  </div>
+                  <p class="text-sm text-warm-600 leading-relaxed font-medium">宝宝约 30cm，600g，像木瓜大小。听力发育完善，可以听到外界声音了！</p>
+                </div>
+                <div class="p-5 bg-gradient-to-br from-sunny-50 to-sunny-100 rounded-2xl border border-sunny-200 transition-all hover:shadow-lg cursor-pointer">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="text-3xl">🤰</span>
+                    <h4 class="font-bold text-warm-800">身体变化</h4>
+                  </div>
+                  <p class="text-sm text-warm-600 leading-relaxed font-medium">子宫增大，可能出现腰酸背痛。胎动明显，每天应感受 10 次以上~</p>
+                </div>
+                <div class="p-5 bg-gradient-to-br from-mint-50 to-mint-100 rounded-2xl border border-mint-200 transition-all hover:shadow-lg cursor-pointer">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="text-3xl">🏥</span>
+                    <h4 class="font-bold text-warm-800">产检项目</h4>
+                  </div>
+                  <p class="text-sm text-warm-600 leading-relaxed font-medium">糖耐量测试（24-28周必做），常规血压、体重、宫高检查。</p>
+                </div>
+                <div class="p-5 bg-gradient-to-br from-lavender-50 to-lavender-100 rounded-2xl border border-lavender-200 transition-all hover:shadow-lg cursor-pointer">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="text-3xl">🛍️</span>
+                    <h4 class="font-bold text-warm-800">购物建议</h4>
+                  </div>
+                  <p class="text-sm text-warm-600 leading-relaxed font-medium">开始准备待产包，购买婴儿基础用品，预约月嫂或月子中心。</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 未完成事项提醒 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-sunny-100">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">⚡</span>
+                  <h3 class="font-display text-xl text-warm-800">需要关注的事项</h3>
+                </div>
+                <span class="text-xs text-white font-bold bg-sunny-400 px-3 py-1.5 rounded-full">3 项待处理</span>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-sunny-50 to-sunny-100 rounded-2xl border border-sunny-200">
+                  <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-sunny-400 animate-pulse"></div>
+                    <span class="text-sm text-warm-700 font-semibold">糖耐量测试还未预约</span>
+                  </div>
+                  <button class="text-xs text-sunny-500 hover:text-sunny-600 font-bold px-3 py-1 bg-white rounded-full shadow">去处理 →</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-coral-50 to-coral-100 rounded-2xl border border-coral-200">
+                  <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-coral-400 animate-pulse"></div>
+                    <span class="text-sm text-warm-700 font-semibold">待产包还有 14 件物品未购买</span>
+                  </div>
+                  <button class="text-xs text-coral-500 hover:text-coral-600 font-bold px-3 py-1 bg-white rounded-full shadow">去处理 →</button>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-mint-50 to-mint-100 rounded-2xl border border-mint-200">
+                  <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-mint-400 animate-pulse"></div>
+                    <span class="text-sm text-warm-700 font-semibold">本周体重记录还未填写</span>
+                  </div>
+                  <button class="text-xs text-mint-500 hover:text-mint-600 font-bold px-3 py-1 bg-white rounded-full shadow">去处理 →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 右侧：待办 & 小红书 -->
+          <div class="space-y-6">
+            <!-- 今日待办 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-mint-100">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-display text-xl text-warm-800">📝 今日待办</h3>
+                <button class="text-sm text-coral-400 hover:text-coral-500 transition font-bold">
+                  <i class="fas fa-plus mr-1"></i>添加
+                </button>
+              </div>
+              <div class="space-y-3">
+                <label class="flex items-center gap-3 p-3 bg-mint-50 rounded-2xl cursor-pointer hover:bg-mint-100 transition group border border-mint-100">
+                  <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-600 line-through font-medium">服用叶酸和钙片</span>
+                  <i class="fas fa-check text-mint-400 ml-auto"></i>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-cream-100 rounded-2xl cursor-pointer hover:bg-cream-200 transition border border-cream-200">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-700 font-medium">记录今日体重</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-cream-100 rounded-2xl cursor-pointer hover:bg-cream-200 transition border border-cream-200">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-700 font-medium">30分钟散步 🚶‍♀️</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-cream-100 rounded-2xl cursor-pointer hover:bg-cream-200 transition border border-cream-200">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-700 font-medium">晚间胎动记录</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-cream-100 rounded-2xl cursor-pointer hover:bg-cream-200 transition border border-cream-200">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-700 font-medium">听胎教音乐 🎵</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- 最近导入 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-coral-100">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-display text-xl text-warm-800">📕 小红书内容</h3>
+                <a href="#" class="text-sm text-coral-400 hover:text-coral-500 transition font-bold">查看全部</a>
+              </div>
+              <div class="space-y-3">
+                <div class="p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <span class="text-lg">📌</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-warm-700 truncate font-bold">待产包最全清单！别漏买...</p>
+                      <p class="text-xs text-warm-600 mt-1 font-medium">已整合到: 待产包清单 ✓</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <span class="text-lg">📌</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-warm-700 truncate font-bold">孕中期这样吃，宝宝长...</p>
+                      <p class="text-xs text-warm-600 mt-1 font-medium">已整合到: 第24周饮食 ✓</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button class="w-full mt-4 py-3 border-2 border-dashed border-coral-200 rounded-2xl text-sm text-coral-400 hover:border-coral-400 hover:bg-coral-50 transition font-bold">
+                <i class="fas fa-plus mr-2"></i>导入新文章
+              </button>
+            </div>
+            
+            <!-- 家人共享 -->
+            <div class="bg-gradient-to-br from-lavender-100 via-coral-50 to-sunny-100 rounded-3xl p-5 border border-lavender-200 shadow-sm">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-xl">👨‍👩‍👧</span>
+                <span class="font-bold text-warm-800">家人共享</span>
+              </div>
+              <p class="text-xs text-warm-600 leading-relaxed mb-4 font-medium">
+                邀请准爸爸和家人一起查看孕期安排，共同参与准备工作~
+              </p>
+              <button class="w-full py-2.5 bg-white text-coral-500 rounded-xl hover:bg-coral-50 transition font-bold shadow-sm">
+                生成分享链接 🔗
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+  
+  <!-- ==================== 页面2: 孕期时间轴 ==================== -->
+  <section class="mb-20">
+    <div class="text-center py-8 bg-white border-b border-coral-100">
+      <h1 class="text-2xl font-bold text-warm-800">页面2：孕期时间轴（周视图）</h1>
+      <p class="text-warm-600 text-sm mt-1 font-medium">支持 日/周/月 三种视图，详细了解每个阶段</p>
+    </div>
+    
+    <div class="flex min-h-[950px]">
+      <!-- 侧边栏 -->
+      <aside class="w-64 bg-white border-r border-coral-100 flex-shrink-0">
+        <div class="p-6 border-b border-coral-50">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl gradient-coral flex items-center justify-center shadow-lg">
+              <span class="text-2xl">👶</span>
+            </div>
+            <div>
+              <h1 class="font-display text-xl text-warm-800">孕期指南</h1>
+              <p class="text-xs text-coral-400 font-medium">温馨陪伴每一天 💕</p>
+            </div>
+          </div>
+        </div>
+        
+        <nav class="py-5">
+          <div class="px-5 mb-3">
+            <span class="text-xs text-warm-600 font-bold tracking-wider">主要功能</span>
+          </div>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-coral-100 flex items-center justify-center">
+              <i class="fas fa-home text-coral-400"></i>
+            </div>
+            <span class="font-medium">首页概览</span>
+          </a>
+          <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-sunny-100 flex items-center justify-center">
+              <i class="fas fa-calendar-alt text-sunny-500"></i>
+            </div>
+            <span class="font-semibold">孕期时间轴</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700 hover:text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-mint-100 flex items-center justify-center">
+              <i class="fas fa-shopping-bag text-mint-400"></i>
+            </div>
+            <span class="font-medium">购物清单</span>
+          </a>
+        </nav>
+        
+        <!-- 周数快速跳转 -->
+        <div class="px-4 mt-4">
+          <div class="p-4 bg-gradient-to-br from-sunny-50 to-coral-50 rounded-2xl border border-sunny-200">
+            <p class="text-xs text-warm-700 mb-2 font-bold">🎯 快速跳转</p>
+            <select class="w-full px-3 py-2.5 bg-white border border-sunny-200 rounded-xl text-sm text-warm-700 font-medium">
+              <option>第 24 周（当前）</option>
+              <option>第 25 周</option>
+              <option>第 26 周</option>
+              <option>第 27 周</option>
+              <option>第 28 周</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- 阶段说明 -->
+        <div class="px-4 mt-4">
+          <div class="p-4 bg-gradient-to-br from-mint-50 to-mint-100 rounded-2xl border border-mint-200">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">💚</span>
+              <span class="text-sm font-bold text-warm-700">当前阶段</span>
+            </div>
+            <p class="text-xs text-warm-600 leading-relaxed font-medium">
+              孕中期是宝宝快速发育的阶段，也是准妈妈相对舒适的时期，要好好享受哦~
+            </p>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- 主内容区 -->
+      <main class="flex-1 p-8 bg-cream-100">
+        <!-- 顶部栏 -->
+        <header class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-display text-3xl text-warm-800">🗓️ 孕期时间轴</h2>
+            <p class="text-warm-600 mt-2 font-medium">查看每日、每周、每月的孕期安排和注意事项</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <!-- 视图切换 -->
+            <div class="flex bg-cream-200 rounded-2xl p-1.5">
+              <button class="view-tab px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:text-warm-800 transition font-semibold">日</button>
+              <button class="view-tab active px-5 py-2.5 rounded-xl text-sm font-bold text-warm-800">周</button>
+              <button class="view-tab px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:text-warm-800 transition font-semibold">月</button>
+            </div>
+            <button class="px-6 py-3 gradient-coral text-white rounded-2xl hover:opacity-90 transition shadow-lg btn-bounce flex items-center gap-2 font-semibold">
+              <i class="fas fa-magic"></i>
+              <span>AI 生成</span>
+            </button>
+          </div>
+        </header>
+        
+        <!-- 周数导航 -->
+        <div class="bg-white rounded-3xl p-4 card-soft mb-6 border border-coral-100">
+          <div class="flex items-center gap-2">
+            <button class="p-3 hover:bg-coral-50 rounded-xl transition">
+              <i class="fas fa-chevron-left text-coral-400"></i>
+            </button>
+            <div class="flex-1 flex gap-2 overflow-x-auto py-2 px-2">
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">20周</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">21周</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">22周</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">23周</button>
+              <button class="flex-shrink-0 px-6 py-3 rounded-xl text-sm font-bold gradient-coral text-white shadow-lg">24周 ✨</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">25周</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">26周</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">27周</button>
+              <button class="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm text-warm-600 hover:bg-cream-100 transition font-semibold">28周</button>
+            </div>
+            <button class="p-3 hover:bg-coral-50 rounded-xl transition">
+              <i class="fas fa-chevron-right text-coral-400"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- 周详情内容 -->
+        <div class="grid grid-cols-3 gap-6">
+          <!-- 左侧：主要信息 -->
+          <div class="col-span-2 space-y-6">
+            <!-- 周标题 -->
+            <div class="gradient-warm rounded-3xl p-6 border border-coral-100 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="font-display text-4xl text-warm-800">第 24 周</span>
+                    <span class="px-4 py-1.5 bg-coral-400 text-white text-sm rounded-full font-bold">孕中期</span>
+                    <span class="px-4 py-1.5 bg-mint-400 text-white text-sm rounded-full font-bold">当前周 ✨</span>
+                  </div>
+                  <p class="text-warm-600 font-medium">预产期: 2024年10月5日 | 还剩 112 天</p>
+                </div>
+                <div class="text-center">
+                  <div class="w-24 h-24 rounded-3xl bg-white shadow-lg flex items-center justify-center mb-2 float-animation">
+                    <span class="text-6xl">🥭</span>
+                  </div>
+                  <p class="text-sm text-warm-600 font-bold">宝宝像木瓜</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 胎儿发育 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-coral-100">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">👶</span>
+                  <h3 class="font-display text-xl text-warm-800">胎儿发育</h3>
+                </div>
+                <button class="text-sm text-warm-600 hover:text-coral-400 transition font-semibold">
+                  <i class="fas fa-edit mr-1"></i>编辑
+                </button>
+              </div>
+              <div class="flex gap-6">
+                <div class="flex-1">
+                  <div class="grid grid-cols-3 gap-4 mb-5">
+                    <div class="text-center p-4 bg-gradient-to-br from-coral-50 to-coral-100 rounded-2xl border border-coral-200">
+                      <p class="text-3xl font-bold text-coral-500">30</p>
+                      <p class="text-xs text-warm-600 mt-1 font-semibold">身长 (cm)</p>
+                    </div>
+                    <div class="text-center p-4 bg-gradient-to-br from-sunny-50 to-sunny-100 rounded-2xl border border-sunny-200">
+                      <p class="text-3xl font-bold text-sunny-500">600</p>
+                      <p class="text-xs text-warm-600 mt-1 font-semibold">体重 (g)</p>
+                    </div>
+                    <div class="text-center p-4 bg-gradient-to-br from-mint-50 to-mint-100 rounded-2xl border border-mint-200">
+                      <p class="text-3xl font-bold text-mint-500">24</p>
+                      <p class="text-xs text-warm-600 mt-1 font-semibold">胎龄 (周)</p>
+                    </div>
+                  </div>
+                  <p class="text-warm-600 leading-relaxed font-medium">
+                    本周宝宝的听力已经发育完善，能够听到妈妈的心跳和外界的声音，可以开始进行音乐胎教了 🎵
+                    皮肤开始变得不那么透明，皮下脂肪正在慢慢积累。宝宝的肺部正在发育，开始产生表面活性物质。
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 身体变化 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-sunny-100">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">🤰</span>
+                  <h3 class="font-display text-xl text-warm-800">身体变化</h3>
+                </div>
+                <button class="text-sm text-warm-600 hover:text-coral-400 transition font-semibold">
+                  <i class="fas fa-edit mr-1"></i>编辑
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-coral-50 to-coral-100 rounded-2xl border border-coral-200">
+                  <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span class="text-xl">⚖️</span>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-warm-800">体重增加</h4>
+                    <p class="text-sm text-warm-600 mt-1 font-medium">建议已增重 5.5-6.5 kg</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-mint-50 to-mint-100 rounded-2xl border border-mint-200">
+                  <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span class="text-xl">👣</span>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-warm-800">胎动明显</h4>
+                    <p class="text-sm text-warm-600 mt-1 font-medium">每天应感受 10 次以上</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-sunny-50 to-sunny-100 rounded-2xl border border-sunny-200">
+                  <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span class="text-xl">💧</span>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-warm-800">可能水肿</h4>
+                    <p class="text-sm text-warm-600 mt-1 font-medium">避免长时间站立或久坐</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-lavender-50 to-lavender-100 rounded-2xl border border-lavender-200">
+                  <div class="w-12 h-12 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span class="text-xl">😴</span>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-warm-800">睡眠困难</h4>
+                    <p class="text-sm text-warm-600 mt-1 font-medium">建议左侧卧，用孕妇枕</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 注意事项 & 饮食建议 -->
+            <div class="grid grid-cols-2 gap-6">
+              <div class="bg-white rounded-3xl p-6 card-soft border border-sunny-100">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl">⚠️</span>
+                    <h3 class="font-display text-lg text-warm-800">注意事项</h3>
+                  </div>
+                  <button class="w-8 h-8 rounded-xl bg-sunny-100 text-sunny-500 hover:bg-sunny-200 transition">
+                    <i class="fas fa-plus text-sm"></i>
+                  </button>
+                </div>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3">
+                    <span class="text-mint-400 mt-0.5">✓</span>
+                    <span class="text-sm text-warm-600 font-medium">本周进行糖耐量测试（OGTT）</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="text-mint-400 mt-0.5">✓</span>
+                    <span class="text-sm text-warm-600 font-medium">每天补充钙和铁，预防贫血</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="text-mint-400 mt-0.5">✓</span>
+                    <span class="text-sm text-warm-600 font-medium">开始进行音乐胎教 🎵</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="text-mint-400 mt-0.5">✓</span>
+                    <span class="text-sm text-warm-600 font-medium">避免长时间站立或久坐</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div class="bg-white rounded-3xl p-6 card-soft border border-coral-100">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl">🥗</span>
+                    <h3 class="font-display text-lg text-warm-800">饮食建议</h3>
+                  </div>
+                  <button class="w-8 h-8 rounded-xl bg-coral-100 text-coral-400 hover:bg-coral-200 transition">
+                    <i class="fas fa-plus text-sm"></i>
+                  </button>
+                </div>
+                <ul class="space-y-3">
+                  <li class="flex items-start gap-3">
+                    <span class="text-coral-400 mt-0.5">🍳</span>
+                    <span class="text-sm text-warm-600 font-medium">增加蛋白质摄入（鱼、蛋、奶）</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="text-coral-400 mt-0.5">🥬</span>
+                    <span class="text-sm text-warm-600 font-medium">多吃富含铁的食物</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="text-coral-400 mt-0.5">🍬</span>
+                    <span class="text-sm text-warm-600 font-medium">控制糖分，预防妊娠糖尿病</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="text-coral-400 mt-0.5">🍽️</span>
+                    <span class="text-sm text-warm-600 font-medium">少食多餐，避免暴饮暴食</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 右侧：产检 & 购物 & 小红书 -->
+          <div class="space-y-6">
+            <!-- 产检项目 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-sunny-100">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">🏥</span>
+                <h3 class="font-display text-lg text-warm-800">产检项目</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="p-4 bg-gradient-to-r from-sunny-50 to-sunny-100 border border-sunny-200 rounded-2xl">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">⚡</span>
+                    <span class="font-bold text-warm-800 text-sm">糖耐量测试</span>
+                  </div>
+                  <p class="text-xs text-warm-600 font-medium">24-28周必做，筛查妊娠糖尿病</p>
+                  <button class="mt-3 text-xs text-sunny-500 hover:text-sunny-600 font-bold bg-white px-3 py-1 rounded-full shadow-sm">
+                    预约提醒 →
+                  </button>
+                </div>
+                <div class="p-4 bg-cream-100 rounded-2xl border border-cream-200">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-lg">🩺</span>
+                    <span class="font-bold text-warm-800 text-sm">常规检查</span>
+                  </div>
+                  <p class="text-xs text-warm-600 font-medium">血压、体重、宫高、腹围</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 本周购物 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-mint-100">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">🛒</span>
+                  <h3 class="font-display text-lg text-warm-800">建议购买</h3>
+                </div>
+                <a href="#" class="text-sm text-mint-500 hover:text-mint-600 transition font-bold">查看全部</a>
+              </div>
+              <div class="space-y-2">
+                <label class="flex items-center gap-3 p-3 hover:bg-mint-50 rounded-xl cursor-pointer transition">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-700 font-medium">胎心仪（可选）</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 hover:bg-mint-50 rounded-xl cursor-pointer transition">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-700 font-medium">孕妇枕 🛏️</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-mint-50 rounded-xl cursor-pointer border border-mint-100">
+                  <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-600 line-through font-medium">钙片 ✓</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-mint-50 rounded-xl cursor-pointer border border-mint-100">
+                  <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                  <span class="text-sm text-warm-600 line-through font-medium">DHA ✓</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- 小红书内容 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-coral-100">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">📕</span>
+                  <h3 class="font-display text-lg text-warm-800">相关笔记</h3>
+                </div>
+                <button class="text-sm text-coral-400 hover:text-coral-500 transition font-bold">
+                  <i class="fas fa-plus mr-1"></i>导入
+                </button>
+              </div>
+              <div class="space-y-3">
+                <div class="p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <p class="text-sm text-warm-700 mb-2 font-bold">24周糖耐亲测攻略，一次过！</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-warm-600 font-medium">来自小红书</span>
+                    <span class="text-xs text-mint-500 bg-mint-100 px-2 py-0.5 rounded-full font-bold">经验</span>
+                  </div>
+                </div>
+                <div class="p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <p class="text-sm text-warm-700 mb-2 font-bold">孕中期必买好物推荐清单</p>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-warm-600 font-medium">来自小红书</span>
+                    <span class="text-xs text-coral-500 bg-coral-100 px-2 py-0.5 rounded-full font-bold">好物</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+  
+  <!-- ==================== 页面3: 小红书导入 ==================== -->
+  <section class="mb-20">
+    <div class="text-center py-8 bg-white border-b border-coral-100">
+      <h1 class="text-2xl font-bold text-warm-800">页面3：小红书内容导入</h1>
+      <p class="text-warm-600 text-sm mt-1 font-medium">粘贴文章内容，AI 自动提取关键信息整合到对应孕周</p>
+    </div>
+    
+    <div class="flex min-h-[800px]">
+      <!-- 侧边栏简化 -->
+      <aside class="w-64 bg-white border-r border-coral-100 flex-shrink-0">
+        <div class="p-6 border-b border-coral-50">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl gradient-coral flex items-center justify-center shadow-lg">
+              <span class="text-2xl">👶</span>
+            </div>
+            <div>
+              <h1 class="font-display text-xl text-warm-800">孕期指南</h1>
+              <p class="text-xs text-coral-400 font-medium">温馨陪伴每一天 💕</p>
+            </div>
+          </div>
+        </div>
+        <nav class="py-5">
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700">
+            <div class="w-8 h-8 rounded-xl bg-coral-100 flex items-center justify-center">
+              <i class="fas fa-home text-coral-400"></i>
+            </div>
+            <span class="font-medium">首页概览</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700">
+            <div class="w-8 h-8 rounded-xl bg-sunny-100 flex items-center justify-center">
+              <i class="fas fa-calendar-alt text-sunny-500"></i>
+            </div>
+            <span class="font-medium">孕期时间轴</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700">
+            <div class="w-8 h-8 rounded-xl bg-mint-100 flex items-center justify-center">
+              <i class="fas fa-shopping-bag text-mint-400"></i>
+            </div>
+            <span class="font-medium">购物清单</span>
+          </a>
+          <div class="px-5 mt-6 mb-3">
+            <span class="text-xs text-warm-600 font-bold">智能助手</span>
+          </div>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700">
+            <div class="w-8 h-8 rounded-xl bg-lavender-100 flex items-center justify-center">
+              <i class="fas fa-magic text-lavender-400"></i>
+            </div>
+            <span class="font-medium">AI 生成内容</span>
+          </a>
+          <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-coral-100 flex items-center justify-center">
+              <i class="fas fa-file-import text-coral-400"></i>
+            </div>
+            <span class="font-semibold">小红书导入</span>
+          </a>
+        </nav>
+      </aside>
+      
+      <!-- 主内容区 -->
+      <main class="flex-1 p-8 bg-cream-100">
+        <header class="mb-6">
+          <h2 class="font-display text-3xl text-warm-800">📕 小红书内容导入</h2>
+          <p class="text-warm-600 mt-2 font-medium">粘贴小红书文章内容，AI 自动提取关键信息并整合到对应孕周</p>
+        </header>
+        
+        <div class="grid grid-cols-2 gap-8">
+          <!-- 左侧：输入区 -->
+          <div class="space-y-6">
+            <div class="bg-white rounded-3xl p-6 card-soft border border-coral-100">
+              <h3 class="font-display text-xl text-warm-800 mb-4">✍️ 粘贴文章内容</h3>
+              <textarea 
+                class="w-full h-72 p-5 bg-cream-50 border-2 border-cream-200 rounded-2xl resize-none text-sm text-warm-700 placeholder-warm-600/50 font-medium"
+                placeholder="将小红书文章内容粘贴到这里...
+
+支持粘贴：
+• 文章标题和正文
+• 评论区精华内容
+• 产品推荐清单
+
+AI 将自动识别内容类型和所属孕周 🤖"></textarea>
+              <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center gap-2 text-sm text-warm-600 font-medium">
+                  <span class="text-lg">💡</span>
+                  <span>AI 将自动识别孕周和内容类型</span>
+                </div>
+                <button class="px-6 py-3 gradient-coral text-white rounded-2xl hover:opacity-90 transition shadow-lg btn-bounce flex items-center gap-2 font-bold">
+                  <i class="fas fa-magic"></i>
+                  <span>AI 提取</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 历史记录 -->
+            <div class="bg-white rounded-3xl p-6 card-soft border border-sunny-100">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-display text-xl text-warm-800">📚 导入历史</h3>
+                <span class="text-sm text-warm-600 font-bold bg-sunny-100 px-3 py-1 rounded-full">共 12 篇</span>
+              </div>
+              <div class="space-y-3 max-h-64 overflow-y-auto">
+                <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <div class="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center">
+                    <span class="text-lg">📌</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-warm-700 truncate">待产包最全清单！别漏买</p>
+                    <p class="text-xs text-warm-600 font-medium">2024-06-14 导入 · 已整合 ✓</p>
+                  </div>
+                  <span class="px-3 py-1 bg-mint-100 text-mint-500 text-xs rounded-full font-bold">待产包</span>
+                </div>
+                <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <div class="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center">
+                    <span class="text-lg">📌</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-warm-700 truncate">孕中期这样吃，宝宝长得好</p>
+                    <p class="text-xs text-warm-600 font-medium">2024-06-13 导入 · 已整合 ✓</p>
+                  </div>
+                  <span class="px-3 py-1 bg-coral-100 text-coral-500 text-xs rounded-full font-bold">第24周</span>
+                </div>
+                <div class="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-coral-50 rounded-2xl hover:shadow-md transition cursor-pointer border border-red-100">
+                  <div class="w-11 h-11 rounded-xl bg-red-100 flex items-center justify-center">
+                    <span class="text-lg">📌</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-warm-700 truncate">糖耐一次过攻略分享</p>
+                    <p class="text-xs text-warm-600 font-medium">2024-06-12 导入 · 已整合 ✓</p>
+                  </div>
+                  <span class="px-3 py-1 bg-coral-100 text-coral-500 text-xs rounded-full font-bold">第24周</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 右侧：提取结果预览 -->
+          <div class="bg-white rounded-3xl p-6 card-soft border border-mint-100">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="font-display text-xl text-warm-800">🤖 AI 提取结果</h3>
+              <span class="px-4 py-1.5 bg-mint-400 text-white text-sm rounded-full font-bold">解析完成 ✨</span>
+            </div>
+            
+            <!-- 模拟提取结果 -->
+            <div class="space-y-5">
+              <!-- 识别信息 -->
+              <div class="p-4 bg-gradient-to-r from-cream-100 to-sunny-50 rounded-2xl border border-cream-200">
+                <p class="text-sm text-warm-700 mb-3 font-bold">📎 识别信息</p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="px-4 py-1.5 bg-coral-400 text-white text-sm rounded-full font-bold">孕中期</span>
+                  <span class="px-4 py-1.5 bg-sunny-400 text-white text-sm rounded-full font-bold">第24-28周</span>
+                  <span class="px-4 py-1.5 bg-mint-400 text-white text-sm rounded-full font-bold">产品推荐</span>
+                </div>
+              </div>
+              
+              <!-- 提取的产品 -->
+              <div>
+                <p class="text-sm text-warm-700 mb-3 font-bold">🛍️ 提取的产品推荐</p>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between p-4 bg-cream-50 rounded-2xl border border-cream-200">
+                    <div class="flex items-center gap-3">
+                      <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                      <span class="text-sm text-warm-700 font-semibold">孕妇枕 - 护腰侧睡款</span>
+                    </div>
+                    <select class="text-xs bg-white border-2 border-coral-200 rounded-xl px-3 py-2 text-warm-700 font-semibold">
+                      <option>添加到: 第24周</option>
+                      <option>添加到: 第25周</option>
+                      <option>添加到: 购物清单</option>
+                    </select>
+                  </div>
+                  <div class="flex items-center justify-between p-4 bg-cream-50 rounded-2xl border border-cream-200">
+                    <div class="flex items-center gap-3">
+                      <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                      <span class="text-sm text-warm-700 font-semibold">托腹带 - 透气款</span>
+                    </div>
+                    <select class="text-xs bg-white border-2 border-coral-200 rounded-xl px-3 py-2 text-warm-700 font-semibold">
+                      <option>添加到: 第24周</option>
+                    </select>
+                  </div>
+                  <div class="flex items-center justify-between p-4 bg-cream-50 rounded-2xl border border-cream-200">
+                    <div class="flex items-center gap-3">
+                      <input type="checkbox" class="w-5 h-5 rounded-lg">
+                      <span class="text-sm text-warm-700 font-semibold">妊娠纹霜 - XX品牌</span>
+                    </div>
+                    <select class="text-xs bg-white border-2 border-coral-200 rounded-xl px-3 py-2 text-warm-700 font-semibold">
+                      <option>添加到: 第20周</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 提取的注意事项 -->
+              <div>
+                <p class="text-sm text-warm-700 mb-3 font-bold">📝 提取的注意事项</p>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between p-4 bg-cream-50 rounded-2xl border border-cream-200">
+                    <div class="flex items-center gap-3">
+                      <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                      <span class="text-sm text-warm-700 font-semibold">睡觉时用枕头垫高双腿缓解水肿</span>
+                    </div>
+                    <select class="text-xs bg-white border-2 border-mint-200 rounded-xl px-3 py-2 text-warm-700 font-semibold">
+                      <option>添加到: 第24周</option>
+                    </select>
+                  </div>
+                  <div class="flex items-center justify-between p-4 bg-cream-50 rounded-2xl border border-cream-200">
+                    <div class="flex items-center gap-3">
+                      <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                      <span class="text-sm text-warm-700 font-semibold">每天数胎动，记录宝宝活动规律</span>
+                    </div>
+                    <select class="text-xs bg-white border-2 border-mint-200 rounded-xl px-3 py-2 text-warm-700 font-semibold">
+                      <option>添加到: 第24周</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 操作按钮 -->
+              <div class="flex gap-4 pt-4 border-t-2 border-cream-200">
+                <button class="flex-1 py-3 bg-cream-200 text-warm-700 rounded-2xl hover:bg-cream-300 transition font-bold">
+                  取消
+                </button>
+                <button class="flex-1 py-3 gradient-coral text-white rounded-2xl hover:opacity-90 transition font-bold shadow-lg">
+                  确认整合 ✓
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+  
+  <!-- ==================== 页面4: 购物清单 ==================== -->
+  <section class="mb-20">
+    <div class="text-center py-8 bg-white border-b border-coral-100">
+      <h1 class="text-2xl font-bold text-warm-800">页面4：购物清单</h1>
+      <p class="text-warm-600 text-sm mt-1 font-medium">分阶段管理孕期需要购买的物品，不遗漏任何重要物品</p>
+    </div>
+    
+    <div class="flex min-h-[850px]">
+      <!-- 侧边栏 -->
+      <aside class="w-64 bg-white border-r border-coral-100 flex-shrink-0">
+        <div class="p-6 border-b border-coral-50">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl gradient-coral flex items-center justify-center shadow-lg">
+              <span class="text-2xl">👶</span>
+            </div>
+            <div>
+              <h1 class="font-display text-xl text-warm-800">孕期指南</h1>
+              <p class="text-xs text-coral-400 font-medium">温馨陪伴每一天 💕</p>
+            </div>
+          </div>
+        </div>
+        <nav class="py-5">
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700">
+            <div class="w-8 h-8 rounded-xl bg-coral-100 flex items-center justify-center">
+              <i class="fas fa-home text-coral-400"></i>
+            </div>
+            <span class="font-medium">首页概览</span>
+          </a>
+          <a href="#" class="sidebar-item flex items-center gap-3 px-4 py-3 text-warm-700">
+            <div class="w-8 h-8 rounded-xl bg-sunny-100 flex items-center justify-center">
+              <i class="fas fa-calendar-alt text-sunny-500"></i>
+            </div>
+            <span class="font-medium">孕期时间轴</span>
+          </a>
+          <a href="#" class="sidebar-item active flex items-center gap-3 px-4 py-3 text-coral-500">
+            <div class="w-8 h-8 rounded-xl bg-mint-100 flex items-center justify-center">
+              <i class="fas fa-shopping-bag text-mint-400"></i>
+            </div>
+            <span class="font-semibold">购物清单</span>
+          </a>
+        </nav>
+        
+        <!-- 清单分类 -->
+        <div class="px-4 mt-4">
+          <p class="text-xs text-warm-600 font-bold mb-3 px-1">📂 清单分类</p>
+          <div class="space-y-1">
+            <a href="#" class="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-coral-100 to-coral-50 text-coral-500 rounded-2xl text-sm font-bold border border-coral-200">
+              <span>全部物品</span>
+              <span class="text-xs bg-coral-400 text-white px-2.5 py-0.5 rounded-full">32</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-4 py-3 hover:bg-cream-100 rounded-2xl text-sm text-warm-700 transition font-semibold">
+              <span>🌱 孕早期</span>
+              <span class="text-xs text-warm-600 bg-cream-200 px-2 py-0.5 rounded-full">8</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-4 py-3 hover:bg-cream-100 rounded-2xl text-sm text-warm-700 transition font-semibold">
+              <span>🌻 孕中期</span>
+              <span class="text-xs text-warm-600 bg-cream-200 px-2 py-0.5 rounded-full">10</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-4 py-3 hover:bg-cream-100 rounded-2xl text-sm text-warm-700 transition font-semibold">
+              <span>🌷 孕晚期</span>
+              <span class="text-xs text-warm-600 bg-cream-200 px-2 py-0.5 rounded-full">6</span>
+            </a>
+            <a href="#" class="flex items-center justify-between px-4 py-3 hover:bg-cream-100 rounded-2xl text-sm text-warm-700 transition font-semibold">
+              <span>🎒 待产包</span>
+              <span class="text-xs text-warm-600 bg-cream-200 px-2 py-0.5 rounded-full">8</span>
+            </a>
+          </div>
+        </div>
+        
+        <!-- 快速添加 -->
+        <div class="px-4 mt-6">
+          <button class="w-full py-3 border-2 border-dashed border-coral-200 rounded-2xl text-sm text-coral-400 hover:border-coral-400 hover:bg-coral-50 transition font-bold">
+            <i class="fas fa-plus mr-2"></i>快速添加物品
+          </button>
+        </div>
+      </aside>
+      
+      <!-- 主内容区 -->
+      <main class="flex-1 p-8 bg-cream-100">
+        <header class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="font-display text-3xl text-warm-800">🛒 购物清单</h2>
+            <p class="text-warm-600 mt-2 font-medium">管理孕期需要购买的所有物品，确保不遗漏</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="px-5 py-3 bg-white border-2 border-lavender-200 rounded-2xl hover:bg-lavender-50 transition flex items-center gap-2 card-soft font-bold text-lavender-400">
+              <i class="fas fa-magic"></i>
+              <span>AI 推荐</span>
+            </button>
+            <button class="px-5 py-3 gradient-coral text-white rounded-2xl hover:opacity-90 transition shadow-lg btn-bounce flex items-center gap-2 font-bold">
+              <i class="fas fa-plus"></i>
+              <span>添加物品</span>
+            </button>
+          </div>
+        </header>
+        
+        <!-- 进度统计 -->
+        <div class="grid grid-cols-4 gap-5 mb-6">
+          <div class="bg-white rounded-3xl p-5 card-soft border border-mint-100">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm text-warm-600 font-bold">🌱 孕早期</span>
+              <span class="text-sm font-bold text-mint-500">100%</span>
+            </div>
+            <div class="h-3 bg-cream-200 rounded-full overflow-hidden shadow-inner">
+              <div class="h-full bg-mint-400 rounded-full" style="width: 100%"></div>
+            </div>
+            <p class="text-xs text-warm-600 mt-2 font-semibold">8/8 已完成 ✓</p>
+          </div>
+          <div class="bg-white rounded-3xl p-5 card-soft border border-coral-100">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm text-warm-600 font-bold">🌻 孕中期</span>
+              <span class="text-sm font-bold text-coral-400">60%</span>
+            </div>
+            <div class="h-3 bg-cream-200 rounded-full overflow-hidden shadow-inner">
+              <div class="h-full progress-warm rounded-full" style="width: 60%"></div>
+            </div>
+            <p class="text-xs text-warm-600 mt-2 font-semibold">6/10 已完成</p>
+          </div>
+          <div class="bg-white rounded-3xl p-5 card-soft border border-cream-200">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm text-warm-600 font-bold">🌷 孕晚期</span>
+              <span class="text-sm font-bold text-warm-600">0%</span>
+            </div>
+            <div class="h-3 bg-cream-200 rounded-full overflow-hidden shadow-inner">
+              <div class="h-full bg-cream-300 rounded-full" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-warm-600 mt-2 font-semibold">0/6 待开始</p>
+          </div>
+          <div class="bg-white rounded-3xl p-5 card-soft border border-sunny-100">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm text-warm-600 font-bold">🎒 待产包</span>
+              <span class="text-sm font-bold text-sunny-500">50%</span>
+            </div>
+            <div class="h-3 bg-cream-200 rounded-full overflow-hidden shadow-inner">
+              <div class="h-full gradient-sunny rounded-full" style="width: 50%"></div>
+            </div>
+            <p class="text-xs text-warm-600 mt-2 font-semibold">4/8 已完成</p>
+          </div>
+        </div>
+        
+        <!-- 清单表格 -->
+        <div class="bg-white rounded-3xl card-soft overflow-hidden border border-coral-100">
+          <div class="flex items-center justify-between p-5 border-b border-cream-100">
+            <div class="flex items-center gap-4">
+              <input type="text" placeholder="🔍 搜索物品..." class="px-4 py-3 bg-cream-50 border-2 border-cream-200 rounded-2xl text-sm w-64 text-warm-700 placeholder-warm-600/50 font-medium">
+              <select class="px-4 py-3 bg-cream-50 border-2 border-cream-200 rounded-2xl text-sm text-warm-700 font-semibold">
+                <option>全部状态</option>
+                <option>未购买</option>
+                <option>已购买</option>
+              </select>
+              <select class="px-4 py-3 bg-cream-50 border-2 border-cream-200 rounded-2xl text-sm text-warm-700 font-semibold">
+                <option>全部来源</option>
+                <option>AI 推荐</option>
+                <option>小红书</option>
+                <option>手动添加</option>
+              </select>
+            </div>
+            <span class="text-sm text-warm-600 font-bold bg-cream-100 px-4 py-2 rounded-full">共 32 件物品</span>
+          </div>
+          
+          <!-- 表格 -->
+          <table class="w-full">
+            <thead class="bg-cream-50">
+              <tr>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600 w-12">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                </th>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600">物品名称</th>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600">分类</th>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600">建议购买</th>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600">来源</th>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600">状态</th>
+                <th class="text-left py-4 px-5 text-sm font-bold text-warm-600 w-28">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-cream-100">
+              <tr class="transition-colors">
+                <td class="py-4 px-5">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                </td>
+                <td class="py-4 px-5">
+                  <span class="text-sm text-warm-800 font-bold">孕妇枕 🛏️</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-coral-100 text-coral-500 text-xs rounded-full font-bold">🌻 孕中期</span>
+                </td>
+                <td class="py-4 px-5 text-sm text-warm-600 font-semibold">第20-24周</td>
+                <td class="py-4 px-5">
+                  <span class="text-xs text-red-400 flex items-center gap-1 font-bold">
+                    📕 小红书
+                  </span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-sunny-100 text-sunny-500 text-xs rounded-full font-bold">未购买</span>
+                </td>
+                <td class="py-4 px-5">
+                  <button class="text-warm-600 hover:text-coral-400 mr-3 transition"><i class="fas fa-edit"></i></button>
+                  <button class="text-warm-600 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr class="transition-colors bg-mint-50/50">
+                <td class="py-4 px-5">
+                  <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                </td>
+                <td class="py-4 px-5">
+                  <span class="text-sm text-warm-600 line-through font-semibold">叶酸 💊</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-cream-200 text-warm-700 text-xs rounded-full font-bold">🌱 孕早期</span>
+                </td>
+                <td class="py-4 px-5 text-sm text-warm-600 font-semibold">备孕-12周</td>
+                <td class="py-4 px-5">
+                  <span class="text-xs text-lavender-400 flex items-center gap-1 font-bold">
+                    ✨ AI推荐
+                  </span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-mint-100 text-mint-500 text-xs rounded-full font-bold">已购买 ✓</span>
+                </td>
+                <td class="py-4 px-5">
+                  <button class="text-warm-600 hover:text-coral-400 mr-3 transition"><i class="fas fa-edit"></i></button>
+                  <button class="text-warm-600 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr class="transition-colors bg-mint-50/50">
+                <td class="py-4 px-5">
+                  <input type="checkbox" checked class="w-5 h-5 rounded-lg">
+                </td>
+                <td class="py-4 px-5">
+                  <span class="text-sm text-warm-600 line-through font-semibold">哺乳内衣 × 3 👙</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-sunny-100 text-sunny-500 text-xs rounded-full font-bold">🎒 待产包</span>
+                </td>
+                <td class="py-4 px-5 text-sm text-warm-600 font-semibold">第36周前</td>
+                <td class="py-4 px-5">
+                  <span class="text-xs text-warm-600 flex items-center gap-1 font-bold">
+                    ✍️ 手动
+                  </span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-mint-100 text-mint-500 text-xs rounded-full font-bold">已购买 ✓</span>
+                </td>
+                <td class="py-4 px-5">
+                  <button class="text-warm-600 hover:text-coral-400 mr-3 transition"><i class="fas fa-edit"></i></button>
+                  <button class="text-warm-600 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr class="transition-colors">
+                <td class="py-4 px-5">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                </td>
+                <td class="py-4 px-5">
+                  <span class="text-sm text-warm-800 font-bold">婴儿推车 🚼</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-mint-100 text-mint-500 text-xs rounded-full font-bold">🌷 孕晚期</span>
+                </td>
+                <td class="py-4 px-5 text-sm text-warm-600 font-semibold">第32周前</td>
+                <td class="py-4 px-5">
+                  <span class="text-xs text-lavender-400 flex items-center gap-1 font-bold">
+                    ✨ AI推荐
+                  </span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-sunny-100 text-sunny-500 text-xs rounded-full font-bold">未购买</span>
+                </td>
+                <td class="py-4 px-5">
+                  <button class="text-warm-600 hover:text-coral-400 mr-3 transition"><i class="fas fa-edit"></i></button>
+                  <button class="text-warm-600 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr class="transition-colors">
+                <td class="py-4 px-5">
+                  <input type="checkbox" class="w-5 h-5 rounded-lg">
+                </td>
+                <td class="py-4 px-5">
+                  <span class="text-sm text-warm-800 font-bold">纸尿裤 NB码 👶</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-sunny-100 text-sunny-500 text-xs rounded-full font-bold">🎒 待产包</span>
+                </td>
+                <td class="py-4 px-5 text-sm text-warm-600 font-semibold">第36周前</td>
+                <td class="py-4 px-5">
+                  <span class="text-xs text-red-400 flex items-center gap-1 font-bold">
+                    📕 小红书
+                  </span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-3 py-1.5 bg-sunny-100 text-sunny-500 text-xs rounded-full font-bold">未购买</span>
+                </td>
+                <td class="py-4 px-5">
+                  <button class="text-warm-600 hover:text-coral-400 mr-3 transition"><i class="fas fa-edit"></i></button>
+                  <button class="text-warm-600 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <!-- 分页 -->
+          <div class="flex items-center justify-between p-5 border-t border-cream-100">
+            <span class="text-sm text-warm-600 font-semibold">显示 1-5 共 32 项</span>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 bg-cream-200 rounded-xl text-sm text-warm-600 font-semibold" disabled>上一页</button>
+              <button class="px-4 py-2 gradient-coral text-white rounded-xl text-sm shadow-lg font-bold">1</button>
+              <button class="px-4 py-2 bg-cream-200 rounded-xl text-sm text-warm-700 hover:bg-cream-300 transition font-semibold">2</button>
+              <button class="px-4 py-2 bg-cream-200 rounded-xl text-sm text-warm-700 hover:bg-cream-300 transition font-semibold">3</button>
+              <button class="px-4 py-2 bg-cream-200 rounded-xl text-sm text-warm-700 hover:bg-cream-300 transition font-semibold">下一页</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+  
+  <!-- 设计说明 -->
+  <section class="max-w-6xl mx-auto px-8 pb-20">
+    <div class="bg-white rounded-4xl p-10 card-soft border border-coral-100">
+      <h2 class="font-display text-3xl text-warm-800 mb-8 text-center">🎨 阳光宝贝 - 配色方案</h2>
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <h3 class="font-bold text-warm-700 mb-4">🌸 主色调</h3>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#FF8A6B] shadow-lg"></div>
+              <div>
+                <span class="text-sm text-warm-700 font-bold">珊瑚橙</span>
+                <p class="text-xs text-warm-600">#FF8A6B</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#FFB5A7] shadow-lg"></div>
+              <div>
+                <span class="text-sm text-warm-700 font-bold">蜜桃粉</span>
+                <p class="text-xs text-warm-600">#FFB5A7</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-bold text-warm-700 mb-4">🌿 辅助色</h3>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#7DD3C0] shadow-lg"></div>
+              <div>
+                <span class="text-sm text-warm-700 font-bold">薄荷绿</span>
+                <p class="text-xs text-warm-600">#7DD3C0</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#FFD97D] shadow-lg"></div>
+              <div>
+                <span class="text-sm text-warm-700 font-bold">阳光黄</span>
+                <p class="text-xs text-warm-600">#FFD97D</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-bold text-warm-700 mb-4">💜 点缀色</h3>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#C9B3FF] shadow-lg"></div>
+              <div>
+                <span class="text-sm text-warm-700 font-bold">薰衣草紫</span>
+                <p class="text-xs text-warm-600">#C9B3FF</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#FFF9F3] border-2 border-cream-200 shadow-lg"></div>
+              <div>
+                <span class="text-sm text-warm-700 font-bold">奶油白</span>
+                <p class="text-xs text-warm-600">#FFF9F3</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-bold text-warm-700 mb-4">✏️ 字体选择</h3>
+          <div class="space-y-3">
+            <div class="p-3 bg-cream-100 rounded-2xl">
+              <p class="font-display text-lg text-warm-800">快乐体</p>
+              <p class="text-xs text-warm-600">ZCOOL KuaiLe - 标题</p>
+            </div>
+            <div class="p-3 bg-cream-100 rounded-2xl">
+              <p class="text-warm-800 font-semibold">Nunito 圆润体</p>
+              <p class="text-xs text-warm-600">正文 - 圆润友好</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-10 pt-8 border-t-2 border-cream-200">
+        <h3 class="font-bold text-warm-700 mb-4 text-center text-lg">✨ 设计理念</h3>
+        <div class="grid md:grid-cols-3 gap-6 text-center">
+          <div class="p-6 bg-gradient-to-br from-coral-50 to-coral-100 rounded-3xl border border-coral-200">
+            <span class="text-3xl mb-3 block">🍑</span>
+            <h4 class="font-bold text-warm-800 mb-2">鲜艳活泼</h4>
+            <p class="text-sm text-warm-600 font-medium">珊瑚橙+蜜桃粉，温暖而充满活力，让人心情愉悦</p>
+          </div>
+          <div class="p-6 bg-gradient-to-br from-mint-50 to-mint-100 rounded-3xl border border-mint-200">
+            <span class="text-3xl mb-3 block">🌿</span>
+            <h4 class="font-bold text-warm-800 mb-2">生机盎然</h4>
+            <p class="text-sm text-warm-600 font-medium">薄荷绿代表生命与希望，阳光黄传递温暖与活力</p>
+          </div>
+          <div class="p-6 bg-gradient-to-br from-lavender-50 to-lavender-100 rounded-3xl border border-lavender-200">
+            <span class="text-3xl mb-3 block">🎀</span>
+            <h4 class="font-bold text-warm-800 mb-2">圆润可爱</h4>
+            <p class="text-sm text-warm-600 font-medium">快乐体字体+圆角设计，温馨可爱不僵硬</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+</body>
+</html>

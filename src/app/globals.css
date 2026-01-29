@@ -1,27 +1,190 @@
+/* 字体: ZCOOL KuaiLe (标题) + Nunito (正文) */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=ZCOOL+KuaiLe&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-display: 'ZCOOL KuaiLe', cursive, system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  font-family: var(--font-body);
+}
+
+/* 标题使用圆润字体 */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FFF9F3;
+  color: #4A3F3A;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+/* 卡片阴影 - UI/UX Pro Max 推荐 */
+@layer components {
+  .card-soft {
+    @apply bg-white rounded-3xl transition-all duration-200;
+    box-shadow: 0 4px 20px rgba(255, 138, 107, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  
+  /* 可交互卡片 hover 效果 (150-300ms) */
+  .card-hover {
+    @apply cursor-pointer;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(255, 138, 107, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* 侧边栏导航项 */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl mx-3 my-1 cursor-pointer;
+    transition: all 200ms ease;
+  }
+  
+  .sidebar-item:hover {
+    background: linear-gradient(135deg, rgba(255, 138, 107, 0.12) 0%, rgba(255, 217, 125, 0.08) 100%);
+  }
+  
+  .sidebar-item.active {
+    background: linear-gradient(135deg, rgba(255, 138, 107, 0.18) 0%, rgba(255, 217, 125, 0.12) 100%);
+    @apply shadow-sm;
+  }
+  
+  /* 渐变背景 */
+  .gradient-warm {
+    background: linear-gradient(135deg, #FFF5F3 0%, #FFFBF0 50%, #FFF9F3 100%);
+  }
+  
+  .gradient-coral {
+    background: linear-gradient(135deg, #FF8A6B 0%, #FFB5A7 100%);
+  }
+  
+  .gradient-sunny {
+    background: linear-gradient(135deg, #FFD97D 0%, #FFC94D 100%);
+  }
+  
+  .gradient-mint {
+    background: linear-gradient(135deg, #7DD3C0 0%, #5BC4AD 100%);
+  }
+  
+  /* 进度条渐变 - 纯暖色系 */
+  .progress-warm {
+    background: linear-gradient(90deg, #FF8A6B 0%, #FFB5A7 50%, #FFD97D 100%);
+  }
+  
+  /* 视图切换按钮 */
+  .view-tab {
+    @apply px-5 py-2.5 rounded-xl text-sm font-semibold cursor-pointer;
+    transition: all 200ms ease;
+  }
+  
+  .view-tab.active {
+    @apply bg-white shadow-sm;
+  }
+  
+  /* 按钮基础样式 - 所有按钮添加 cursor-pointer */
+  .btn {
+    @apply cursor-pointer;
+    transition: all 200ms ease;
+  }
+  
+  .btn:hover {
+    transform: scale(1.02);
+  }
+  
+  .btn:active {
+    transform: scale(0.98);
+  }
+  
+  /* 图标按钮 */
+  .icon-btn {
+    @apply flex items-center justify-center cursor-pointer rounded-xl;
+    transition: all 200ms ease;
+  }
+  
+  .icon-btn:hover {
+    transform: scale(1.05);
+  }
+  
+  /* 链接样式 */
+  .link {
+    @apply cursor-pointer;
+    transition: color 150ms ease;
+  }
+  
+  /* 浮动动画 */
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF3E8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFB5A7 0%, #FF8A6B 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FF8A6B 0%, #FF6B4A 100%);
+}
+
+/* 输入框聚焦 */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #FF8A6B;
+  box-shadow: 0 0 0 4px rgba(255, 138, 107, 0.15);
+}
+
+/* 复选框样式 */
+input[type="checkbox"] {
+  accent-color: #7DD3C0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 表格行悬停 */
+tbody tr {
+  transition: background-color 150ms ease;
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background-color: #FFFCF8;
+}
+
+/* 尊重用户的动画偏好 (UI/UX Pro Max 推荐) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .float-animation {
+    animation: none;
   }
 }

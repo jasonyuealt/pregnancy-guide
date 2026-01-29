@@ -59,31 +59,84 @@ export async function chat(messages: ChatMessage[]): Promise<string> {
 }
 
 /**
+ * 孕周内容结构
+ */
+export interface WeekContentData {
+  fetalSize: string;
+  fetalWeight: string;
+  fetalLength: string;
+  fetalDevelopment: string;
+  keyPoints: string[];
+  checkups: { name: string; important: boolean }[];
+  shopping: { name: string; reason: string }[];
+  nutrition: string[];
+  warnings: string[];
+}
+
+/**
  * 生成孕周内容
  */
-export async function generateWeekContent(week: number): Promise<string> {
-  const systemPrompt = `你是一个专业的孕期顾问。请根据用户提供的孕周数，生成该周的详细指南。
-请使用 JSON 格式返回，包含以下字段：
+export async function generateWeekContent(week: number): Promise<WeekContentData> {
+  const systemPrompt = `你是一个专业的孕期顾问。请根据用户提供的孕周数，生成该周的完整指南。
+
+请严格使用以下 JSON 格式返回（不要添加任何其他文字）：
 {
-  "fetalSize": "宝宝大小比喻（如：像一个木瓜）",
-  "fetalWeight": "体重（克）",
-  "fetalLength": "身长（厘米）",
-  "fetalEmoji": "代表宝宝大小的 emoji",
-  "fetalDevelopment": "胎儿发育描述（100-150字）",
-  "bodyChanges": ["身体变化1", "身体变化2", "身体变化3", "身体变化4"],
-  "tips": ["注意事项1", "注意事项2", "注意事项3", "注意事项4"],
-  "nutrition": ["饮食建议1", "饮食建议2", "饮食建议3", "饮食建议4"],
-  "exercise": ["运动建议1", "运动建议2"],
-  "checkups": ["需要做的产检项目"]
+  "fetalSize": "宝宝大小比喻（如：木瓜、柚子等）",
+  "fetalWeight": "体重数字（克，纯数字）",
+  "fetalLength": "身长数字（厘米，纯数字）",
+  "fetalDevelopment": "胎儿发育描述（80-120字，描述本周宝宝的发育重点）",
+  "keyPoints": ["本周注意事项1", "注意事项2", "注意事项3", "注意事项4"],
+  "checkups": [
+    { "name": "产检项目名称", "important": true或false }
+  ],
+  "shopping": [
+    { "name": "建议购买物品", "reason": "购买理由" }
+  ],
+  "nutrition": ["饮食建议1", "饮食建议2", "饮食建议3"],
+  "warnings": ["需要警惕的症状1", "症状2"]
 }
-请确保内容准确、专业、温馨。`;
+
+注意：
+1. 内容必须准确、专业，基于医学常识
+2. keyPoints 提供 4 条最重要的本周注意事项
+3. checkups 只列出本周需要做的产检，没有就返回空数组
+4. shopping 推荐 2-3 个本周适合购买的物品
+5. nutrition 提供 3 条饮食建议
+6. warnings 列出需要警惕就医的症状`;
 
   const userPrompt = `请生成孕期第 ${week} 周的详细指南。`;
 
-  return chat([
+  const response = await chat([
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt },
   ]);
+
+  // 解析 JSON 响应
+  try {
+    // 尝试提取 JSON 部分（处理可能的 markdown 代码块）
+    let jsonStr = response;
+    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || 
+                      response.match(/```\s*([\s\S]*?)\s*```/) ||
+                      response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1] || jsonMatch[0];
+    }
+    return JSON.parse(jsonStr);
+  } catch {
+    // 如果解析失败，返回默认数据
+    console.error('AI 响应解析失败:', response);
+    return {
+      fetalSize: '未知',
+      fetalWeight: '0',
+      fetalLength: '0',
+      fetalDevelopment: 'AI 生成内容解析失败，请重试。',
+      keyPoints: ['请重新生成内容'],
+      checkups: [],
+      shopping: [],
+      nutrition: [],
+      warnings: [],
+    };
+  }
 }
 
 /**

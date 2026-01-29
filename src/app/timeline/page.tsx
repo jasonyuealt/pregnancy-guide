@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/bloc/app.bloc';
+import { generateWeekContent, WeekContentData } from '@/lib/ai';
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,55 +13,50 @@ import {
   Sparkles,
   Check,
   Plus,
+  Loader2,
+  AlertCircle,
+  Utensils,
 } from 'lucide-react';
 
 /**
- * 模拟的孕周数据（后续由 AI 生成）
- */
-const mockWeekData: Record<number, {
-  fetalSize: string;
-  fetalWeight: string;
-  fetalLength: string;
-  fetalDevelopment: string;
-  keyPoints: string[];
-  checkups: { name: string; important: boolean }[];
-  shopping: { name: string; checked: boolean }[];
-}> = {
-  24: {
-    fetalSize: '木瓜',
-    fetalWeight: '600',
-    fetalLength: '30',
-    fetalDevelopment: '本周宝宝的听力发育完善，能听到妈妈的心跳和外界声音，可以开始音乐胎教了。',
-    keyPoints: [
-      '每天感受胎动 10 次以上',
-      '补充钙和铁，预防贫血',
-      '避免长时间站立或久坐',
-      '开始音乐胎教',
-    ],
-    checkups: [
-      { name: '糖耐量测试（OGTT）', important: true },
-      { name: '常规检查：血压、体重、宫高', important: false },
-    ],
-    shopping: [
-      { name: '孕妇枕', checked: false },
-      { name: '托腹带', checked: false },
-      { name: 'DHA', checked: true },
-    ],
-  },
-};
-
-/**
  * 孕期时间轴 - 周视图为核心
+ * AI 实时生成每周内容
  */
 export default function TimelinePage() {
-  const { settings, getCurrentWeekInfo } = useAppStore();
+  const { settings, getCurrentWeekInfo, weekDataCache, setWeekData } = useAppStore();
   const { week: actualWeek, daysUntilDue } = getCurrentWeekInfo();
   
   const [currentWeek, setCurrentWeek] = useState(actualWeek);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [weekContent, setWeekContent] = useState<WeekContentData | null>(null);
+  
   const isCurrentWeek = currentWeek === actualWeek;
 
-  // 获取当前周数据（如果没有则用默认）
-  const weekData = mockWeekData[currentWeek] || mockWeekData[24];
+  // 检查缓存或加载内容
+  useEffect(() => {
+    const cached = weekDataCache[currentWeek];
+    if (cached) {
+      setWeekContent(cached as unknown as WeekContentData);
+    } else {
+      setWeekContent(null);
+    }
+  }, [currentWeek, weekDataCache]);
+
+  // AI 生成内容
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    try {
+      const content = await generateWeekContent(currentWeek);
+      setWeekContent(content);
+      // 保存到缓存
+      setWeekData(currentWeek, content as unknown as typeof weekDataCache[number]);
+    } catch (error) {
+      console.error('生成失败:', error);
+      alert('AI 生成失败，请重试');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   // 周数导航
   const goToPrevWeek = () => setCurrentWeek((w) => Math.max(1, w - 1));
@@ -97,9 +93,11 @@ export default function TimelinePage() {
             <span className={`px-3 py-1 bg-${stage.color}-100 text-${stage.color}-500 text-sm rounded-full font-medium`}>
               {stage.name}
             </span>
-            <span className="text-sm text-warm-500">
-              距预产期 {daysUntilDue - (currentWeek - actualWeek) * 7} 天
-            </span>
+            {settings.dueDate && (
+              <span className="text-sm text-warm-500">
+                距预产期 {Math.max(0, daysUntilDue - (currentWeek - actualWeek) * 7)} 天
+              </span>
+            )}
           </div>
         </div>
 
@@ -133,123 +131,198 @@ export default function TimelinePage() {
           ))}
       </div>
 
-      {/* 胎儿发育 */}
-      <div className="card-soft p-6 mb-5 border border-coral-100">
-        <div className="flex items-start gap-5">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-coral-100 to-coral-200 flex items-center justify-center flex-shrink-0">
-            <Baby className="text-coral-500" size={40} />
+      {/* 内容区域 */}
+      {!weekContent ? (
+        // 未生成内容时显示生成按钮
+        <div className="card-soft p-12 border border-coral-100 text-center">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-coral-100 to-sunny-100 flex items-center justify-center mx-auto mb-6">
+            <Sparkles className="text-coral-400" size={36} />
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-display text-xl text-warm-800">胎儿发育</h3>
-              <span className="text-sm text-warm-500">像{weekData.fetalSize}大小</span>
-            </div>
-            <div className="flex gap-4 mb-3">
-              <span className="text-sm text-warm-600">
-                身长 <strong className="text-coral-500">{weekData.fetalLength}cm</strong>
-              </span>
-              <span className="text-sm text-warm-600">
-                体重 <strong className="text-coral-500">{weekData.fetalWeight}g</strong>
-              </span>
-            </div>
-            <p className="text-sm text-warm-600 leading-relaxed">{weekData.fetalDevelopment}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 两栏：注意事项 + 产检 */}
-      <div className="grid grid-cols-2 gap-5 mb-5">
-        {/* 本周注意事项 */}
-        <div className="card-soft p-5 border border-sunny-100">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="text-sunny-500" size={20} />
-            <h3 className="font-display text-lg text-warm-800">注意事项</h3>
-          </div>
-          <ul className="space-y-2">
-            {weekData.keyPoints.map((point, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <Check className="text-mint-400 mt-0.5 flex-shrink-0" size={16} />
-                <span className="text-sm text-warm-600">{point}</span>
-              </li>
-            ))}
-          </ul>
-          <button className="mt-4 w-full py-2 text-sm text-sunny-500 bg-sunny-50 rounded-xl font-medium hover:bg-sunny-100 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1">
-            <Plus size={14} />
-            添加注意事项
-          </button>
-        </div>
-
-        {/* 产检提醒 */}
-        <div className="card-soft p-5 border border-mint-100">
-          <div className="flex items-center gap-2 mb-4">
-            <Stethoscope className="text-mint-500" size={20} />
-            <h3 className="font-display text-lg text-warm-800">产检项目</h3>
-          </div>
-          <div className="space-y-2">
-            {weekData.checkups.map((item, idx) => (
-              <div
-                key={idx}
-                className={`p-3 rounded-xl ${
-                  item.important
-                    ? 'bg-gradient-to-r from-sunny-50 to-sunny-100 border border-sunny-200'
-                    : 'bg-cream-50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {item.important && <AlertTriangle size={14} className="text-sunny-500" />}
-                  <span className="text-sm text-warm-700 font-medium">{item.name}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 本周建议购买 */}
-      <div className="card-soft p-5 border border-lavender-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <ShoppingBag className="text-lavender-400" size={20} />
-            <h3 className="font-display text-lg text-warm-800">本周建议购买</h3>
-          </div>
-          <a
-            href="/shopping"
-            className="text-xs text-lavender-400 hover:text-lavender-500 font-medium cursor-pointer"
+          <h3 className="font-display text-2xl text-warm-800 mb-3">
+            第 {currentWeek} 周内容待生成
+          </h3>
+          <p className="text-warm-600 mb-6 max-w-md mx-auto">
+            点击下方按钮，AI 将为你生成本周的胎儿发育、注意事项、产检提醒、购物建议等完整内容
+          </p>
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="inline-flex items-center gap-2 px-8 py-4 gradient-coral text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-70"
           >
-            查看完整清单
-          </a>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {weekData.shopping.map((item, idx) => (
-            <label
-              key={idx}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all duration-200 ${
-                item.checked
-                  ? 'bg-mint-50 text-mint-600 border border-mint-200'
-                  : 'bg-cream-100 text-warm-700 hover:bg-cream-200'
-              }`}
-            >
-              <input type="checkbox" checked={item.checked} readOnly className="w-4 h-4 rounded" />
-              <span className={`text-sm font-medium ${item.checked ? 'line-through' : ''}`}>
-                {item.name}
-              </span>
-            </label>
-          ))}
-          <button className="px-4 py-2 border-2 border-dashed border-lavender-200 rounded-xl text-sm text-lavender-400 font-medium hover:border-lavender-400 transition-colors duration-200 cursor-pointer flex items-center gap-1">
-            <Plus size={14} />
-            添加
+            {isGenerating ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                AI 生成中...
+              </>
+            ) : (
+              <>
+                <Sparkles size={20} />
+                AI 生成本周内容
+              </>
+            )}
           </button>
         </div>
-      </div>
+      ) : (
+        // 已生成内容
+        <>
+          {/* 胎儿发育 */}
+          <div className="card-soft p-6 mb-5 border border-coral-100">
+            <div className="flex items-start gap-5">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-coral-100 to-coral-200 flex items-center justify-center flex-shrink-0">
+                <Baby className="text-coral-500" size={40} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-xl text-warm-800">胎儿发育</h3>
+                    <span className="text-sm text-warm-500">像{weekContent.fetalSize}大小</span>
+                  </div>
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    className="text-xs text-coral-400 hover:text-coral-500 font-medium cursor-pointer flex items-center gap-1"
+                  >
+                    {isGenerating ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
+                    重新生成
+                  </button>
+                </div>
+                <div className="flex gap-4 mb-3">
+                  <span className="text-sm text-warm-600">
+                    身长 <strong className="text-coral-500">{weekContent.fetalLength}cm</strong>
+                  </span>
+                  <span className="text-sm text-warm-600">
+                    体重 <strong className="text-coral-500">{weekContent.fetalWeight}g</strong>
+                  </span>
+                </div>
+                <p className="text-sm text-warm-600 leading-relaxed">{weekContent.fetalDevelopment}</p>
+              </div>
+            </div>
+          </div>
 
-      {/* AI 生成提示 */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-lavender-50 to-coral-50 rounded-2xl border border-lavender-100 text-center">
-        <button className="inline-flex items-center gap-2 px-6 py-3 gradient-coral text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer">
-          <Sparkles size={18} />
-          AI 生成本周内容
-        </button>
-        <p className="text-xs text-warm-500 mt-2">根据孕周自动生成专业的孕期指导内容</p>
-      </div>
+          {/* 两栏：注意事项 + 产检 */}
+          <div className="grid grid-cols-2 gap-5 mb-5">
+            {/* 本周注意事项 */}
+            <div className="card-soft p-5 border border-sunny-100">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle className="text-sunny-500" size={20} />
+                <h3 className="font-display text-lg text-warm-800">注意事项</h3>
+              </div>
+              <ul className="space-y-2">
+                {weekContent.keyPoints.map((point, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <Check className="text-mint-400 mt-0.5 flex-shrink-0" size={16} />
+                    <span className="text-sm text-warm-600">{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 产检提醒 */}
+            <div className="card-soft p-5 border border-mint-100">
+              <div className="flex items-center gap-2 mb-4">
+                <Stethoscope className="text-mint-500" size={20} />
+                <h3 className="font-display text-lg text-warm-800">产检项目</h3>
+              </div>
+              {weekContent.checkups.length > 0 ? (
+                <div className="space-y-2">
+                  {weekContent.checkups.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-xl ${
+                        item.important
+                          ? 'bg-gradient-to-r from-sunny-50 to-sunny-100 border border-sunny-200'
+                          : 'bg-cream-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {item.important && <AlertTriangle size={14} className="text-sunny-500" />}
+                        <span className="text-sm text-warm-700 font-medium">{item.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-warm-500 text-center py-4">本周无特殊产检</p>
+              )}
+            </div>
+          </div>
+
+          {/* 饮食建议 + 警惕症状 */}
+          <div className="grid grid-cols-2 gap-5 mb-5">
+            {/* 饮食建议 */}
+            <div className="card-soft p-5 border border-coral-100">
+              <div className="flex items-center gap-2 mb-4">
+                <Utensils className="text-coral-400" size={20} />
+                <h3 className="font-display text-lg text-warm-800">饮食建议</h3>
+              </div>
+              <ul className="space-y-2">
+                {weekContent.nutrition.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <Check className="text-coral-400 mt-0.5 flex-shrink-0" size={16} />
+                    <span className="text-sm text-warm-600">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 警惕症状 */}
+            {weekContent.warnings.length > 0 && (
+              <div className="card-soft p-5 border border-red-100 bg-gradient-to-br from-red-50 to-white">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="text-red-400" size={20} />
+                  <h3 className="font-display text-lg text-warm-800">需警惕症状</h3>
+                </div>
+                <ul className="space-y-2">
+                  {weekContent.warnings.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <AlertCircle className="text-red-400 mt-0.5 flex-shrink-0" size={14} />
+                      <span className="text-sm text-red-600">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* 本周建议购买 */}
+          <div className="card-soft p-5 border border-lavender-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="text-lavender-400" size={20} />
+                <h3 className="font-display text-lg text-warm-800">本周建议购买</h3>
+              </div>
+              <a
+                href="/shopping"
+                className="text-xs text-lavender-400 hover:text-lavender-500 font-medium cursor-pointer"
+              >
+                查看完整清单
+              </a>
+            </div>
+            {weekContent.shopping.length > 0 ? (
+              <div className="space-y-2">
+                {weekContent.shopping.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-cream-50 rounded-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" className="w-4 h-4 rounded cursor-pointer" />
+                      <span className="text-sm text-warm-700 font-medium">{item.name}</span>
+                    </div>
+                    <span className="text-xs text-warm-500">{item.reason}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-warm-500 text-center py-4">本周无特殊购买建议</p>
+            )}
+            <button className="mt-3 w-full py-2 border-2 border-dashed border-lavender-200 rounded-xl text-sm text-lavender-400 font-medium hover:border-lavender-400 transition-colors duration-200 cursor-pointer flex items-center justify-center gap-1">
+              <Plus size={14} />
+              添加购物项
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

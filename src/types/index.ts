@@ -155,11 +155,13 @@ export class WeekData {
  */
 export class UserSettings {
   dueDate: string | null; // 预产期 YYYY-MM-DD
+  lmpDate: string | null; // 末次月经 YYYY-MM-DD
   currentWeek: number;
   currentDay: number;
 
   constructor(data: Partial<UserSettings> = {}) {
     this.dueDate = data.dueDate ?? null;
+    this.lmpDate = data.lmpDate ?? null;
     this.currentWeek = data.currentWeek || 24;
     this.currentDay = data.currentDay || 3;
   }

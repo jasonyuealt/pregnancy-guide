@@ -7,14 +7,13 @@ import {
   Plus,
   Check,
   Trash2,
-  Filter,
   Package,
   Baby,
   Sparkles,
 } from 'lucide-react';
 
 /**
- * 购物清单页面 - 分阶段管理
+ * 购物清单页面 - 温馨母婴风格
  */
 export default function ShoppingPage() {
   const { shoppingList, toggleShoppingItem, removeShoppingItem } = useAppStore();
@@ -23,7 +22,7 @@ export default function ShoppingPage() {
 
   // 阶段分类
   const stages = [
-    { id: 'all', name: '全部', icon: ShoppingBag },
+    { id: 'all', name: '全部阶段', icon: ShoppingBag },
     { id: 'early', name: '孕早期', icon: Baby },
     { id: 'middle', name: '孕中期', icon: Baby },
     { id: 'late', name: '孕晚期', icon: Baby },
@@ -50,38 +49,40 @@ export default function ShoppingPage() {
   })).filter((group) => stageFilter === 'all' || group.id === stageFilter);
 
   return (
-    <div className="animate-fade-in min-h-[calc(100vh-4rem)]">
-      {/* 顶部统计 */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl gradient-sunny flex items-center justify-center shadow">
-            <ShoppingBag className="text-white" size={24} />
+    <div className="animate-fade-in space-y-6">
+      {/* 标题卡片 */}
+      <div className="card-soft p-6 border border-peach-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-peach-400 to-pink-400 flex items-center justify-center shadow-gentle">
+              <ShoppingBag className="text-white" size={26} />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl text-text-primary mb-1">购物清单</h1>
+              <p className="text-sm text-text-secondary">
+                共 {totalCount} 项 · 已购 {checkedCount} · 待购 <span className="text-pink-500 font-semibold">{pendingCount}</span>
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-2xl text-warm-800">购物清单</h1>
-            <p className="text-sm text-warm-500">
-              共 {totalCount} 项 · 已购 {checkedCount} · 待购 <span className="text-sunny-500 font-medium">{pendingCount}</span>
-            </p>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-peach-500 font-number">{pendingCount}</div>
+            <div className="text-xs text-text-soft">待购</div>
           </div>
         </div>
-        <button className="px-4 py-2.5 gradient-coral text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center gap-2">
-          <Plus size={18} />
-          添加物品
-        </button>
       </div>
 
       {/* 筛选栏 */}
-      <div className="flex flex-wrap gap-3 mb-5">
+      <div className="flex flex-wrap gap-3">
         {/* 阶段筛选 */}
-        <div className="flex gap-2 p-1 bg-cream-100 rounded-xl">
+        <div className="flex gap-2 flex-wrap">
           {stages.map((stage) => (
             <button
               key={stage.id}
               onClick={() => setStageFilter(stage.id)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 stageFilter === stage.id
-                  ? 'bg-white text-coral-500 shadow-sm'
-                  : 'text-warm-600 hover:text-warm-800'
+                  ? 'bg-gradient-to-r from-pink-400 to-peach-400 text-white shadow-gentle'
+                  : 'bg-white border border-neutral-soft text-text-primary hover:border-pink-300'
               }`}
             >
               {stage.name}
@@ -90,7 +91,7 @@ export default function ShoppingPage() {
         </div>
 
         {/* 状态筛选 */}
-        <div className="flex gap-2 p-1 bg-cream-100 rounded-xl ml-auto">
+        <div className="flex gap-2 ml-auto">
           {[
             { id: 'all', name: '全部' },
             { id: 'pending', name: '待购' },
@@ -99,10 +100,10 @@ export default function ShoppingPage() {
             <button
               key={f.id}
               onClick={() => setFilter(f.id as typeof filter)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 filter === f.id
-                  ? 'bg-white text-mint-500 shadow-sm'
-                  : 'text-warm-600 hover:text-warm-800'
+                  ? 'bg-mint-400 text-white'
+                  : 'bg-white border border-neutral-soft text-text-primary hover:border-mint-300'
               }`}
             >
               {f.name}
@@ -112,85 +113,94 @@ export default function ShoppingPage() {
       </div>
 
       {/* 购物列表 - 按阶段分组 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {groupedByStage.map((group) => (
-          <div key={group.id} className="card-soft p-5 border border-cream-200">
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                group.id === 'hospital' ? 'bg-lavender-100' : 'bg-coral-100'
-              }`}>
-                <group.icon className={group.id === 'hospital' ? 'text-lavender-500' : 'text-coral-500'} size={16} />
-              </div>
-              <span className="font-display text-lg text-warm-800">{group.name}</span>
-              <span className="text-xs text-warm-500 bg-cream-200 px-2 py-0.5 rounded-full ml-auto">
-                {group.items.filter((i) => i.checked).length}/{group.items.length}
-              </span>
-            </div>
-
-            {group.items.length > 0 ? (
-              <div className="space-y-2">
-                {group.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-                      item.checked
-                        ? 'bg-mint-50 border border-mint-100'
-                        : 'bg-cream-50 hover:bg-cream-100'
-                    }`}
-                  >
-                    <button
-                      onClick={() => toggleShoppingItem(item.id)}
-                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                        item.checked
-                          ? 'bg-mint-400 border-mint-400'
-                          : 'border-cream-300 hover:border-mint-400'
-                      }`}
-                    >
-                      {item.checked && <Check className="text-white" size={14} />}
-                    </button>
-                    <span className={`flex-1 text-sm ${item.checked ? 'text-warm-500 line-through' : 'text-warm-700'}`}>
-                      {item.name}
-                    </span>
-                    {item.source === 'xiaohongshu' && (
-                      <span className="text-xs text-red-400 bg-red-50 px-2 py-0.5 rounded-full">小红书</span>
-                    )}
-                    {item.source === 'ai' && (
-                      <span className="text-xs text-lavender-500 bg-lavender-50 px-2 py-0.5 rounded-full">AI</span>
-                    )}
-                    <button
-                      onClick={() => removeShoppingItem(item.id)}
-                      className="p-1.5 text-warm-400 hover:text-red-400 hover:bg-red-50 rounded-lg transition-all duration-200 cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+      {groupedByStage.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {groupedByStage.map((group) => (
+            <div key={group.id} className="card-gentle border border-neutral-soft">
+              <div className="p-5 border-b border-neutral-soft bg-gradient-to-r from-cream-50 to-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-100 to-peach-100 flex items-center justify-center">
+                    <group.icon className="text-pink-500" size={20} />
                   </div>
-                ))}
+                  <span className="font-semibold text-text-primary flex-1">{group.name}</span>
+                  <span className="text-xs text-text-soft bg-cream-100 px-2.5 py-1 rounded-full">
+                    {group.items.filter((i) => i.checked).length}/{group.items.length}
+                  </span>
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-warm-400 text-center py-6">暂无物品</p>
-            )}
 
-            <button className="mt-3 w-full py-2 border-2 border-dashed border-cream-300 rounded-xl text-sm text-warm-500 font-medium hover:border-coral-300 hover:text-coral-500 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1">
-              <Plus size={14} />
-              添加到{group.name}
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className="p-5">
+                {group.items.length > 0 ? (
+                  <div className="space-y-3">
+                    {group.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`flex items-start gap-3 p-4 rounded-xl transition-all ${
+                          item.checked
+                            ? 'bg-mint-50 border border-mint-200'
+                            : 'bg-cream-50 hover:bg-cream-100'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => toggleShoppingItem(item.id)}
+                          className="mt-0.5 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <span className={`font-medium block mb-1 ${
+                            item.checked ? 'text-text-soft line-through' : 'text-text-primary'
+                          }`}>
+                            {item.name}
+                          </span>
+                          {item.reason && (
+                            <p className="text-xs text-text-secondary">{item.reason}</p>
+                          )}
+                          {item.recommendedBrands && item.recommendedBrands.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {item.recommendedBrands.map((brand, idx) => (
+                                <span key={idx} className="px-2 py-0.5 bg-peach-50 text-peach-600 text-xs rounded">
+                                  {brand}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeShoppingItem(item.id)}
+                          className="text-text-soft hover:text-pink-500 hover:bg-pink-50 p-1.5 rounded-lg transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-text-soft text-center py-8">暂无物品</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="card-soft p-12 text-center">
+          <ShoppingBag className="w-16 h-16 text-text-soft mx-auto mb-4 opacity-50" />
+          <p className="text-text-secondary">购物清单为空</p>
+        </div>
+      )}
 
-      {/* AI 推荐 */}
-      <div className="mt-5 p-5 card-soft border border-lavender-100 bg-gradient-to-r from-lavender-50 to-white">
+      {/* AI 推荐提示 */}
+      <div className="card-gentle border border-sky-100 p-5 bg-gradient-to-r from-sky-50 to-mint-50">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow">
-            <Sparkles className="text-lavender-400" size={24} />
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-gentle">
+            <Sparkles className="text-sky-400" size={24} />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-warm-800">AI 智能推荐</p>
-            <p className="text-sm text-warm-500">根据当前孕周，AI 为你推荐需要购买的物品</p>
+            <p className="font-semibold text-text-primary mb-1">智能推荐功能</p>
+            <p className="text-sm text-text-secondary">
+              AI 会从你收藏的笔记中自动提取推荐物品添加到清单
+            </p>
           </div>
-          <button className="px-5 py-2.5 gradient-coral text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200 cursor-pointer">
-            生成推荐
-          </button>
         </div>
       </div>
     </div>

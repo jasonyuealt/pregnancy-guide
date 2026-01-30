@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserSettings, TodoItem, ShoppingItem, WeekData, ImportedItem } from '@/types';
+import { UserSettings, ShoppingItem, XhsNote, WeekKnowledge } from '@/types';
 
 /**
  * 应用全局状态接口
@@ -9,17 +9,14 @@ interface AppState {
   // 用户设置
   settings: UserSettings;
   
-  // 待办事项
-  todos: TodoItem[];
+  // 小红书笔记收藏
+  xhsNotes: XhsNote[];
+  
+  // 孕周聚合知识
+  weekKnowledgeCache: Record<number, WeekKnowledge>;
   
   // 购物清单
   shoppingList: ShoppingItem[];
-  
-  // 孕周数据缓存
-  weekDataCache: Record<number, WeekData>;
-  
-  // 导入的内容
-  importedItems: ImportedItem[];
   
   // 加载状态
   isLoading: boolean;
@@ -32,28 +29,27 @@ interface AppActions {
   // 设置相关
   updateSettings: (settings: Partial<UserSettings>) => void;
   
-  // 待办相关
-  addTodo: (todo: TodoItem) => void;
-  toggleTodo: (id: string) => void;
-  removeTodo: (id: string) => void;
+  // 笔记相关
+  addXhsNote: (note: XhsNote) => void;
+  updateXhsNote: (id: string, updates: Partial<XhsNote>) => void;
+  removeXhsNote: (id: string) => void;
+  toggleNoteFavorite: (id: string) => void;
+  getNotesByWeek: (week: number) => XhsNote[];
+  getNotesByCategory: (category: string) => XhsNote[];
   
   // 购物清单相关
   addShoppingItem: (item: ShoppingItem) => void;
   toggleShoppingItem: (id: string) => void;
   removeShoppingItem: (id: string) => void;
   
-  // 孕周数据相关
-  setWeekData: (week: number, data: WeekData) => void;
-  getWeekData: (week: number) => WeekData | undefined;
-  
-  // 导入内容相关
-  addImportedItem: (item: ImportedItem) => void;
-  markAsIntegrated: (id: string) => void;
-  removeImportedItem: (id: string) => void;
+  // 孕周知识相关
+  setWeekKnowledge: (week: number, knowledge: WeekKnowledge) => void;
+  getWeekKnowledge: (week: number) => WeekKnowledge | undefined;
+  aggregateWeekKnowledge: (week: number) => void;
   
   // 工具方法
   setLoading: (loading: boolean) => void;
-  getCurrentWeekInfo: () => { week: number; day: number; stage: string; daysUntilDue: number };
+  getCurrentWeekInfo: () => { week: number; day: number; totalDays: number; stage: string; daysUntilDue: number };
 }
 
 /**
@@ -64,35 +60,9 @@ export const useAppStore = create<AppState & AppActions>()(
     (set, get) => ({
       // 初始状态
       settings: new UserSettings({ dueDate: '2024-10-05', currentWeek: 24, currentDay: 3 }),
-      todos: [
-        new TodoItem({ title: '服用叶酸和钙片', completed: true, category: 'health' }),
-        new TodoItem({ title: '记录今日体重', completed: false, category: 'health' }),
-        new TodoItem({ title: '30分钟散步 🚶‍♀️', completed: false, category: 'exercise' }),
-        new TodoItem({ title: '晚间胎动记录', completed: false, category: 'health' }),
-        new TodoItem({ title: '听胎教音乐 🎵', completed: false, category: 'other' }),
-      ],
-      shoppingList: [
-        new ShoppingItem({ name: '孕妇枕 🛏️', stage: 'middle', week: 24, source: 'xiaohongshu' }),
-        new ShoppingItem({ name: '叶酸 💊', stage: 'early', checked: true, source: 'ai' }),
-        new ShoppingItem({ name: '哺乳内衣 × 3 👙', stage: 'hospital', checked: true, source: 'user' }),
-        new ShoppingItem({ name: '婴儿推车 🚼', stage: 'late', week: 32, source: 'ai' }),
-        new ShoppingItem({ name: '纸尿裤 NB码 👶', stage: 'hospital', source: 'xiaohongshu' }),
-      ],
-      weekDataCache: {},
-      importedItems: [
-        new ImportedItem({
-          sourceTitle: '待产包最全清单！别漏买',
-          targetStage: 'hospital',
-          contentType: 'product',
-          isIntegrated: true,
-        }),
-        new ImportedItem({
-          sourceTitle: '孕中期这样吃，宝宝长得好',
-          targetWeek: 24,
-          contentType: 'nutrition',
-          isIntegrated: true,
-        }),
-      ],
+      xhsNotes: [],
+      weekKnowledgeCache: {},
+      shoppingList: [],
       isLoading: false,
 
       // 设置相关操作
@@ -102,25 +72,57 @@ export const useAppStore = create<AppState & AppActions>()(
         }));
       },
 
-      // 待办相关操作
-      addTodo: (todo) => {
-        set((state) => ({
-          todos: [...state.todos, todo],
-        }));
+      // 笔记相关操作
+      addXhsNote: (note) => {
+        set((state) => {
+          const newNotes = [...state.xhsNotes, note];
+          
+          // 如果笔记有AI分析结果，触发知识聚合
+          if (note.aiAnalysis?.weeks) {
+            note.aiAnalysis.weeks.forEach(week => {
+              // 将在 aggregateWeekKnowledge 中处理
+              setTimeout(() => get().aggregateWeekKnowledge(week), 0);
+            });
+          }
+          
+          return { xhsNotes: newNotes };
+        });
       },
 
-      toggleTodo: (id) => {
+      updateXhsNote: (id, updates) => {
         set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, completed: !todo.completed } : todo
+          xhsNotes: state.xhsNotes.map((note) =>
+            note.id === id ? { ...note, ...updates } : note
           ),
         }));
       },
 
-      removeTodo: (id) => {
+      removeXhsNote: (id) => {
         set((state) => ({
-          todos: state.todos.filter((todo) => todo.id !== id),
+          xhsNotes: state.xhsNotes.filter((note) => note.id !== id),
         }));
+      },
+
+      toggleNoteFavorite: (id) => {
+        set((state) => ({
+          xhsNotes: state.xhsNotes.map((note) =>
+            note.id === id ? { ...note, isFavorite: !note.isFavorite } : note
+          ),
+        }));
+      },
+
+      getNotesByWeek: (week) => {
+        const { xhsNotes } = get();
+        return xhsNotes.filter(
+          (note) => note.aiAnalysis?.weeks.includes(week)
+        );
+      },
+
+      getNotesByCategory: (category) => {
+        const { xhsNotes } = get();
+        return xhsNotes.filter(
+          (note) => note.aiAnalysis?.category === category
+        );
       },
 
       // 购物清单操作
@@ -144,36 +146,190 @@ export const useAppStore = create<AppState & AppActions>()(
         }));
       },
 
-      // 孕周数据操作
-      setWeekData: (week, data) => {
+      // 孕周知识操作
+      setWeekKnowledge: (week, knowledge) => {
         set((state) => ({
-          weekDataCache: { ...state.weekDataCache, [week]: data },
+          weekKnowledgeCache: { ...state.weekKnowledgeCache, [week]: knowledge },
         }));
       },
 
-      getWeekData: (week) => {
-        return get().weekDataCache[week];
+      getWeekKnowledge: (week) => {
+        return get().weekKnowledgeCache[week];
       },
 
-      // 导入内容操作
-      addImportedItem: (item) => {
-        set((state) => ({
-          importedItems: [...state.importedItems, item],
-        }));
+      /**
+       * 辅助函数：简单的文本相似度检测和去重
+       * 移除完全重复和高度相似的内容
+       */
+      deduplicateAndMerge: (items: string[]): string[] => {
+        if (items.length === 0) return [];
+        
+        // 第一步：去除完全重复的项
+        const uniqueItems = [...new Set(items)];
+        
+        // 第二步：简单的相似度检测
+        // 移除包含关系（如果A完全包含B，则保留较长的A）
+        const filtered: string[] = [];
+        
+        for (const item of uniqueItems) {
+          const isDuplicate = filtered.some(existing => {
+            // 如果当前项是已有项的子串，跳过
+            if (existing.includes(item) && existing.length > item.length) {
+              return true;
+            }
+            // 如果已有项是当前项的子串，替换已有项
+            if (item.includes(existing) && item.length > existing.length) {
+              const index = filtered.indexOf(existing);
+              filtered[index] = item;
+              return true;
+            }
+            return false;
+          });
+          
+          if (!isDuplicate) {
+            filtered.push(item);
+          }
+        }
+        
+        return filtered;
       },
 
-      markAsIntegrated: (id) => {
-        set((state) => ({
-          importedItems: state.importedItems.map((item) =>
-            item.id === id ? { ...item, isIntegrated: true } : item
-          ),
-        }));
-      },
-
-      removeImportedItem: (id) => {
-        set((state) => ({
-          importedItems: state.importedItems.filter((item) => item.id !== id),
-        }));
+      /**
+       * 聚合指定孕周的知识
+       * 从所有笔记中提取该周相关内容，按类别整理
+       * 优化：去重、合并相似内容、统计来源
+       */
+      aggregateWeekKnowledge: (week) => {
+        const { xhsNotes, deduplicateAndMerge } = get();
+        
+        // 获取该周所有笔记
+        const weekNotes = xhsNotes.filter(
+          (note) => note.aiAnalysis?.weeks.includes(week)
+        );
+        
+        if (weekNotes.length === 0) {
+          // 如果没有笔记，清除该周的知识缓存
+          const cache = { ...get().weekKnowledgeCache };
+          delete cache[week];
+          set({ weekKnowledgeCache: cache });
+          return;
+        }
+        
+        // 按类别分组
+        const notesByCategory = {
+          nutrition: weekNotes.filter(n => n.aiAnalysis?.category === 'nutrition'),
+          checkup: weekNotes.filter(n => n.aiAnalysis?.category === 'checkup'),
+          exercise: weekNotes.filter(n => n.aiAnalysis?.category === 'exercise'),
+          product: weekNotes.filter(n => n.aiAnalysis?.category === 'product'),
+          symptom: weekNotes.filter(n => n.aiAnalysis?.category === 'symptom'),
+          experience: weekNotes.filter(n => n.aiAnalysis?.category === 'experience'),
+        };
+        
+        const now = new Date();
+        
+        // 聚合营养建议 - 使用去重和合并
+        const nutritionPoints = notesByCategory.nutrition.flatMap(n => n.aiAnalysis?.keyPoints || []);
+        const nutritionSummary = {
+          content: deduplicateAndMerge(nutritionPoints),
+          sourceNotes: notesByCategory.nutrition.map(n => n.id),
+          lastUpdated: now,
+        };
+        
+        // 聚合产检项目 - 按标题去重
+        const checkupMap = new Map<string, any>();
+        notesByCategory.checkup.forEach(note => {
+          if (note.aiAnalysis?.keyPoints && note.aiAnalysis.keyPoints.length > 0) {
+            const title = note.title;
+            if (!checkupMap.has(title)) {
+              checkupMap.set(title, {
+                name: title,
+                timing: `第${week}周`,
+                process: note.aiAnalysis.keyPoints,
+                preparation: note.aiAnalysis.warnings || [],
+                notes: [],
+              });
+            } else {
+              // 合并相同标题的项目
+              const existing = checkupMap.get(title);
+              existing.process = deduplicateAndMerge([
+                ...existing.process,
+                ...note.aiAnalysis.keyPoints
+              ]);
+            }
+          }
+        });
+        
+        const checkupSummary = {
+          items: Array.from(checkupMap.values()),
+          sourceNotes: notesByCategory.checkup.map(n => n.id),
+          lastUpdated: now,
+        };
+        
+        // 聚合运动建议 - 使用去重和合并
+        const exercisePoints = notesByCategory.exercise.flatMap(n => n.aiAnalysis?.keyPoints || []);
+        const exerciseSummary = {
+          content: deduplicateAndMerge(exercisePoints),
+          sourceNotes: notesByCategory.exercise.map(n => n.id),
+          lastUpdated: now,
+        };
+        
+        // 聚合推荐物品 - 按名称去重
+        const productMap = new Map<string, any>();
+        notesByCategory.product.forEach(note => {
+          if (note.aiAnalysis?.products) {
+            note.aiAnalysis.products.forEach(product => {
+              if (!productMap.has(product)) {
+                productMap.set(product, {
+                  name: product,
+                  reason: note.aiAnalysis?.keyPoints[0] || '',
+                  recommendedBrands: [],
+                  isPurchased: false,
+                });
+              }
+            });
+          }
+        });
+        
+        const productSummary = {
+          items: Array.from(productMap.values()),
+          sourceNotes: notesByCategory.product.map(n => n.id),
+          lastUpdated: now,
+        };
+        
+        // 聚合症状说明 - 使用去重和合并
+        const symptomPoints = notesByCategory.symptom.flatMap(n => n.aiAnalysis?.keyPoints || []);
+        const symptomSummary = {
+          content: deduplicateAndMerge(symptomPoints),
+          sourceNotes: notesByCategory.symptom.map(n => n.id),
+          lastUpdated: now,
+        };
+        
+        // 聚合经验分享 - 使用去重和合并
+        const experiencePoints = notesByCategory.experience.flatMap(n => n.aiAnalysis?.keyPoints || []);
+        const experienceSummary = {
+          content: deduplicateAndMerge(experiencePoints),
+          sourceNotes: notesByCategory.experience.map(n => n.id),
+          lastUpdated: now,
+        };
+        
+        // 提取重点提醒 - 使用去重和合并
+        const allWarnings = weekNotes.flatMap(note => note.aiAnalysis?.warnings || []);
+        const highlightPoints = deduplicateAndMerge(allWarnings);
+        
+        // 创建或更新 WeekKnowledge
+        const weekKnowledge = new WeekKnowledge({
+          week,
+          nutritionSummary,
+          checkupSummary,
+          exerciseSummary,
+          productSummary,
+          symptomSummary,
+          experienceSummary,
+          totalNotes: weekNotes.length,
+          highlightPoints,
+        });
+        
+        get().setWeekKnowledge(week, weekKnowledge);
       },
 
       // 工具方法
@@ -238,10 +394,9 @@ export const useAppStore = create<AppState & AppActions>()(
       name: 'pregnancy-guide-storage',
       partialize: (state) => ({
         settings: state.settings,
-        todos: state.todos,
+        xhsNotes: state.xhsNotes,
+        weekKnowledgeCache: state.weekKnowledgeCache,
         shoppingList: state.shoppingList,
-        weekDataCache: state.weekDataCache,
-        importedItems: state.importedItems,
       }),
     }
   )

@@ -1,13 +1,23 @@
-/* 字体: ZCOOL KuaiLe (标题) + Nunito (正文) */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=ZCOOL+KuaiLe&display=swap');
+/* 温馨母婴字体系统 */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-display: 'ZCOOL KuaiLe', cursive, system-ui, sans-serif;
-  --font-body: 'Nunito', system-ui, sans-serif;
+  /* 使用系统字体作为主字体，温暖圆润 */
+  --font-display: 'PingFang SC', -apple-system, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  --font-body: 'PingFang SC', -apple-system, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  --font-number: 'Outfit', 'DIN', system-ui, sans-serif;
+  
+  /* 温馨母婴色彩变量 */
+  --color-bg-base: #FFF9F5;
+  --color-bg-soft: #F8F6F3;
+  --color-text-primary: #5C5550;
+  --color-text-secondary: #9C9690;
+  --color-primary: #FFB5C2;
+  --color-accent: #FFD4BC;
 }
 
 * {
@@ -17,66 +27,84 @@
 /* 标题使用圆润字体 */
 h1, h2, h3, .font-display {
   font-family: var(--font-display);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+/* 数字使用现代字体 */
+.font-number {
+  font-family: var(--font-number);
+  font-feature-settings: 'tnum';
 }
 
 body {
-  background-color: #FFF9F3;
-  color: #4A3F3A;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 卡片阴影 - UI/UX Pro Max 推荐 */
+/* 温馨母婴卡片系统 */
 @layer components {
   .card-soft {
-    @apply bg-white rounded-3xl transition-all duration-200;
-    box-shadow: 0 4px 20px rgba(255, 138, 107, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    @apply bg-white rounded-3xl transition-all duration-300;
+    box-shadow: 0 2px 8px rgba(255, 181, 194, 0.08), 0 8px 24px rgba(255, 181, 194, 0.12);
   }
   
-  /* 可交互卡片 hover 效果 (150-300ms) */
+  .card-gentle {
+    @apply bg-white rounded-2xl transition-all duration-300;
+    box-shadow: 0 1px 4px rgba(255, 181, 194, 0.06), 0 4px 12px rgba(255, 181, 194, 0.08);
+  }
+  
+  /* 可交互卡片 hover 效果 */
   .card-hover {
     @apply cursor-pointer;
   }
   
   .card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(255, 138, 107, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 181, 194, 0.14), 0 12px 32px rgba(255, 181, 194, 0.18);
   }
   
-  /* 侧边栏导航项 */
+  /* 侧边栏导航项 - 柔和风格 */
   .sidebar-item {
     @apply flex items-center gap-3 px-4 py-3 rounded-2xl mx-3 my-1 cursor-pointer;
-    transition: all 200ms ease;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .sidebar-item:hover {
-    background: linear-gradient(135deg, rgba(255, 138, 107, 0.12) 0%, rgba(255, 217, 125, 0.08) 100%);
+    background: linear-gradient(135deg, rgba(255, 181, 194, 0.08) 0%, rgba(255, 212, 188, 0.06) 100%);
   }
   
   .sidebar-item.active {
-    background: linear-gradient(135deg, rgba(255, 138, 107, 0.18) 0%, rgba(255, 217, 125, 0.12) 100%);
-    @apply shadow-sm;
+    background: linear-gradient(135deg, rgba(255, 181, 194, 0.15) 0%, rgba(255, 212, 188, 0.10) 100%);
+    box-shadow: 0 2px 8px rgba(255, 181, 194, 0.12);
   }
   
-  /* 渐变背景 */
+  /* 温馨渐变背景 */
   .gradient-warm {
-    background: linear-gradient(135deg, #FFF5F3 0%, #FFFBF0 50%, #FFF9F3 100%);
+    background: linear-gradient(135deg, #FFF9F5 0%, #FFF5E9 50%, #F8F6F3 100%);
   }
   
-  .gradient-coral {
-    background: linear-gradient(135deg, #FF8A6B 0%, #FFB5A7 100%);
+  .gradient-pink {
+    background: linear-gradient(135deg, #FFB5C2 0%, #FFC2D4 100%);
   }
   
-  .gradient-sunny {
-    background: linear-gradient(135deg, #FFD97D 0%, #FFC94D 100%);
+  .gradient-peach {
+    background: linear-gradient(135deg, #FFD4BC 0%, #FFE8D8 100%);
   }
   
   .gradient-mint {
-    background: linear-gradient(135deg, #7DD3C0 0%, #5BC4AD 100%);
+    background: linear-gradient(135deg, #B8D4C0 0%, #9BC7B8 100%);
   }
   
-  /* 进度条渐变 - 纯暖色系 */
+  .gradient-soft {
+    background: linear-gradient(135deg, #FFFCF9 0%, #FFF5E9 100%);
+  }
+  
+  /* 进度条渐变 - 柔和粉色系 */
   .progress-warm {
-    background: linear-gradient(90deg, #FF8A6B 0%, #FFB5A7 50%, #FFD97D 100%);
+    background: linear-gradient(90deg, #FFB5C2 0%, #FFD4BC 50%, #FFE8D8 100%);
   }
   
   /* 视图切换按钮 */
@@ -130,38 +158,40 @@ body {
   50% { transform: translateY(-8px); }
 }
 
-/* 自定义滚动条 */
+/* 柔和滚动条 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FFF3E8;
-  border-radius: 4px;
+  background: #FFF5E9;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #FFB5A7 0%, #FF8A6B 100%);
-  border-radius: 4px;
+  background: linear-gradient(180deg, #FFC2D4 0%, #FFB5C2 100%);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #FF8A6B 0%, #FF6B4A 100%);
+  background: linear-gradient(180deg, #FFB5C2 0%, #FF9BB0 100%);
 }
 
-/* 输入框聚焦 */
+/* 输入框聚焦 - 柔和粉色 */
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #FF8A6B;
-  box-shadow: 0 0 0 4px rgba(255, 138, 107, 0.15);
+  border-color: #FFB5C2;
+  box-shadow: 0 0 0 4px rgba(255, 181, 194, 0.12);
 }
 
-/* 复选框样式 */
+/* 复选框样式 - 薄荷绿 */
 input[type="checkbox"] {
-  accent-color: #7DD3C0;
-  border-radius: 6px;
+  accent-color: #B8D4C0;
+  border-radius: 4px;
   cursor: pointer;
+  width: 18px;
+  height: 18px;
 }
 
 /* 日期选择器样式优化 */

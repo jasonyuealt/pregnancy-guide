@@ -237,3 +237,134 @@ export async function generateShoppingRecommendation(
     { role: 'user', content: userPrompt },
   ]);
 }
+
+/**
+ * AI 分析结果接口（新）
+ */
+export interface XhsAnalysisResult {
+  weeks: number[];                    // 适用孕周 [24, 25, 26]
+  category: 'nutrition' | 'checkup' | 'exercise' | 'product' | 'symptom' | 'experience';
+  keyPoints: string[];                // 关键知识点
+  products: string[];                 // 提取的产品列表
+  warnings: string[];                 // 注意事项/警告
+  relatedTags: string[];              // 相关标签
+}
+
+/**
+ * 分析小红书内容并提取结构化知识点
+ * 这是核心 AI 分析功能
+ */
+export async function analyzeXhsContent(
+  title: string,
+  content: string,
+  tags: string[]
+): Promise<XhsAnalysisResult> {
+  const systemPrompt = `你是一个专业的孕期知识整理助手。用户会提供一篇小红书孕期笔记的标题和内容。
+你的任务是分析这篇内容，并提取结构化的知识点。
+
+请严格按照以下 JSON 格式返回（不要添加任何其他文字）：
+{
+  "weeks": [24, 25, 26],              // 适用的孕周数组，如果无法确定具体周数，根据内容推断大致范围
+  "category": "nutrition",            // 内容分类：nutrition(营养)/checkup(产检)/exercise(运动)/product(物品)/symptom(症状)/experience(经验分享)
+  "keyPoints": [                      // 关键知识点，3-5条，精炼提取
+    "每天补充DHA 200-300mg",
+    "控制糖分摄入，为糖耐做准备",
+    "增加优质蛋白质摄入"
+  ],
+  "products": [                       // 提及的具体产品，如果没有就返回空数组
+    "DHA补充剂",
+    "孕妇枕"
+  ],
+  "warnings": [                       // 注意事项、禁忌、警告信息
+    "糖耐前一晚需禁食8小时",
+    "如出现持续腹痛需立即就医"
+  ],
+  "relatedTags": [                    // 相关的关键词标签
+    "DHA", "糖耐", "孕中期营养"
+  ]
+}
+
+分析规则：
+1. weeks 数组：
+   - 如果内容明确提到"第X周"、"X周"，提取具体周数
+   - 如果提到"孕早期"(1-12周)，返回 [4, 8, 12]
+   - 如果提到"孕中期"(13-28周)，返回 [20, 24, 28]
+   - 如果提到"孕晚期"(29-40周)，返回 [32, 36, 40]
+   - 如果内容适用于多个周，尽量列出关键周数（不要超过5个）
+
+2. category 分类标准：
+   - nutrition: 饮食、营养补充、食谱相关
+   - checkup: 产检项目、检查流程、医院相关
+   - exercise: 运动、活动、体操、瑜伽
+   - product: 物品推荐、用品清单、待产包
+   - symptom: 症状说明、身体变化、不适处理
+   - experience: 个人经验、心得体会、避坑指南
+
+3. keyPoints 提取要点：
+   - 每条要精炼、可执行
+   - 包含具体数字、时间、方法
+   - 去除主观感受，保留客观信息
+
+4. products 提取规则：
+   - 只提取具体的产品名称
+   - 去除品牌名（如："某品牌DHA" → "DHA补充剂"）
+   - 如果内容不涉及产品推荐，返回空数组
+
+5. warnings 提取规则：
+   - 提取禁忌事项、注意事项、警告信息
+   - 提取需要就医的症状描述
+   - 如果没有明确警告，返回空数组
+
+6. relatedTags 标签规则：
+   - 提取3-5个关键词
+   - 可以是文中未出现但相关的专业术语`;
+
+  const userPrompt = `请分析以下小红书笔记并提取知识点：
+
+标题：${title}
+
+内容：${content}
+
+原始标签：${tags.join(', ')}`;
+
+  const response = await chat([
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ]);
+
+  try {
+    // 提取 JSON
+    let jsonStr = response;
+    const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/) || 
+                      response.match(/```\s*([\s\S]*?)\s*```/) ||
+                      response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1] || jsonMatch[0];
+    }
+    
+    const result = JSON.parse(jsonStr);
+    
+    // 验证和修正数据
+    return {
+      weeks: Array.isArray(result.weeks) ? result.weeks : [24],
+      category: ['nutrition', 'checkup', 'exercise', 'product', 'symptom', 'experience'].includes(result.category) 
+        ? result.category 
+        : 'experience',
+      keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints : [],
+      products: Array.isArray(result.products) ? result.products : [],
+      warnings: Array.isArray(result.warnings) ? result.warnings : [],
+      relatedTags: Array.isArray(result.relatedTags) ? result.relatedTags : [],
+    };
+  } catch (error) {
+    console.error('AI 分析失败:', response, error);
+    // 返回默认值
+    return {
+      weeks: [24],
+      category: 'experience',
+      keyPoints: ['AI 分析失败，请手动整理'],
+      products: [],
+      warnings: [],
+      relatedTags: tags,
+    };
+  }
+}
